@@ -130,6 +130,7 @@ def placeBlock(brd,spot,wid,ht):   #checks if a block can be placed in the spot
         # display2d(cushionedBoard,wid+2)
         #print(newlyAddedBlocks)
         blk = newlyAddedBlocks.pop(0)
+        yCoordOfBlk = blk //(wid+2)
         if cushionedBoard[blk] not in  "-#":
 
             return -1
@@ -142,7 +143,7 @@ def placeBlock(brd,spot,wid,ht):   #checks if a block can be placed in the spot
             
         viewRight = cushionedBoard[blk:blk+4] #rightwards
         if "#" in viewRight[1:]:
-            print("viewing right", blk)
+            #print("viewing right", blk)
             #print('this shouldnt happen')
             blockInOneOfThem = True
             otherBlkIndex = viewRight[1:].index("#") + 1
@@ -199,7 +200,7 @@ def placeBlock(brd,spot,wid,ht):   #checks if a block can be placed in the spot
                     cushionedBoard = cushionedBoard[:i] + newView[ctr] + cushionedBoard[i+1:]
                     ctr+=1
             
-        viewUp = cushionedBoard[blk:blk- 3 * (wid+2) -1:-(wid+2)]
+        viewUp = cushionedBoard[blk:blk- yCoordOfBlk * (wid+2) -1:-(wid+2)]
         if "#" in viewUp[1:] :
             #print('this shouldnt happen')
             blockInOneOfThem = True
@@ -216,7 +217,7 @@ def placeBlock(brd,spot,wid,ht):   #checks if a block can be placed in the spot
                 ctr = 0
                 for i in range(blk,blk-len(newView)*(wid+2),-(wid+2)):
                     cushionedBoard = cushionedBoard[:i] + newView[ctr] + cushionedBoard[i+1:]
-                    ctr-=1
+                    ctr+=1   #not sure if this should be - or +
             
 
     if not blockInOneOfThem:
@@ -245,7 +246,7 @@ def main():
     for sS in seedStrings:
         board = placeWord(board,sS,width)
     #display2d(board,width)
-    pB = placeBlock(board, 11,width,height)
+    pB = placeBlock(board, 13,width,height)
     if pB == -1:
         display2d(board,width)
     else:
