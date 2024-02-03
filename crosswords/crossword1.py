@@ -119,7 +119,7 @@ def placeBlock(brd,spot,wid,ht):   #checks if a block can be placed in the spot
     cushionedBoard += "#"* wid + "##"
     yCoord = spot //wid
     xCoord = spot%wid 
-    cushionedIndex =   7 + (yCoord * (wid+2)) + 1 + xCoord
+    cushionedIndex =   wid+2 + (yCoord * (wid+2)) + 1 + xCoord
 
     newlyAddedBlocks = [cushionedIndex]
     blockInOneOfThem = False
@@ -174,7 +174,7 @@ def placeBlock(brd,spot,wid,ht):   #checks if a block can be placed in the spot
                 ctr -=1
 
             
-    
+
     if not blockInOneOfThem:
 
         cushionedBoard =  cushionedBoard[: cushionedIndex] +  "#" +  cushionedBoard[cushionedIndex+1:] 
@@ -199,7 +199,7 @@ def main():
     for sS in seedStrings:
         board = placeWord(board,sS,width)
     #display2d(board,width)
-    pB = placeBlock(board, 7,width,height)
+    pB = placeBlock(board, 42,width,height)
     if pB == -1:
         display2d(board,width)
     else:
