@@ -124,8 +124,6 @@ def placeBlock(brd,spot,wid,ht):   #checks if a block can be placed in the spot
     newlyAddedBlocks = [cushionedIndex]
     blockInOneOfThem = False
 
-    
-    
     while newlyAddedBlocks:
         # display2d(cushionedBoard,wid+2)
         #print(newlyAddedBlocks)
@@ -133,105 +131,61 @@ def placeBlock(brd,spot,wid,ht):   #checks if a block can be placed in the spot
         if cushionedBoard[blk] not in  "-#":
 
             return -1
-        # if cushionedBoard[blk] == "#":
-        #     #display2d(cushionedBoard,wid+2)
-        #     #make sure to decushionize the board
-        #     return cushionedBoard
+        if cushionedBoard[blk] == "#":
+            #display2d(cushionedBoard,wid+2)
+            #make sure to decushionize the board
+            return cushionedBoard
         
 
             
         viewRight = cushionedBoard[blk:blk+4] #rightwards
         if "#" in viewRight[1:]:
-            print("viewing right", blk)
             #print('this shouldnt happen')
             blockInOneOfThem = True
             otherBlkIndex = viewRight[1:].index("#") + 1
-            if otherBlkIndex != 1:
-                if any([True for letter in viewRight[0:otherBlkIndex] if letter in alphabetString]):
-                    return -1
-                newView = viewRight
-                for l in range(0,otherBlkIndex):
-                    newView= newView[:l] + "#" + newView[l+1:]
-                    if l !=0:
-                        newlyAddedBlocks.append(cushionedIndex + l)
-                #print(newlyAddedBlocks)
-                ctr = 0
-                for i in range(blk,blk+4):
-                    cushionedBoard = cushionedBoard[:cushionedIndex + ctr] + newView[ctr] + cushionedBoard[cushionedIndex +ctr+1:]
-                    ctr+=1
+            if any([True for letter in viewRight[0:otherBlkIndex] if letter in alphabetString]):
+                return -1
+            newView = viewRight
+            for l in range(0,otherBlkIndex):
+                newView= newView[:l] + "#" + newView[l+1:]
+                if l !=0:
+                    newlyAddedBlocks.append(cushionedIndex + l)
+            #print(newlyAddedBlocks)
+            ctr = 0
+            for i in range(blk,blk+4):
+                cushionedBoard = cushionedBoard[:cushionedIndex + ctr] + newView[ctr] + cushionedBoard[cushionedIndex +ctr+1:]
+                ctr+=1
 
         viewLeft = cushionedBoard[blk:blk-4:-1]
         if "#" in viewLeft[1:]:
             blockInOneOfThem = True
             otherBlkIndex = viewLeft[1:].index("#")+1
-            if otherBlkIndex != 1:
-                if any([True for letter in viewLeft[0:otherBlkIndex] if letter in alphabetString]):
-                    return -1
-                newView = viewLeft
-                for l in range(0,otherBlkIndex):
-                    newView= newView[:l] + "#" + newView[l+1:]
-                    if l !=0:
-                        newlyAddedBlocks.append(cushionedIndex - l)
+            if any([True for letter in viewLeft[0:otherBlkIndex] if letter in alphabetString]):
+                return -1
+            newView = viewLeft
+            for l in range(0,otherBlkIndex):
+                newView= newView[:l] + "#" + newView[l+1:]
+                if l !=0:
+                    newlyAddedBlocks.append(cushionedIndex - l)
 
-                ctr = 0 #fix this whoops
-                for i in range(0,otherBlkIndex):
-                    cushionedBoard = cushionedBoard[:cushionedIndex+ ctr] + newView[i] + cushionedBoard[cushionedIndex +ctr+1:]
-                    ctr -=1
+            ctr = 0 #fix this whoops
+            for i in range(0,otherBlkIndex):
+                cushionedBoard = cushionedBoard[:cushionedIndex+ ctr] + newView[i] + cushionedBoard[cushionedIndex +ctr+1:]
+                ctr -=1
 
-
-        viewDown = cushionedBoard[blk:blk+ 4 * (wid+2) :wid+2] #rightwards
-   
-        if "#" in viewDown[1:] :
-            #print('this shouldnt happen')
-            blockInOneOfThem = True
-            otherBlkIndex = viewDown[1:].index("#") + 1
-            if otherBlkIndex != 1:
-                if any([True for letter in viewDown[0:otherBlkIndex] if letter in alphabetString]):
-                    return -1
-                newView = viewDown
-                for l in range(0,otherBlkIndex):
-                    newView= newView[:l] + "#" + newView[l+1:]
-                    if l !=0:
-                        newlyAddedBlocks.append(cushionedIndex + l * (wid+2))
-                #print(newlyAddedBlocks)
-                ctr = 0
-                for i in range(blk,blk+len(newView)*(wid+2),wid+2):
-                    cushionedBoard = cushionedBoard[:i] + newView[ctr] + cushionedBoard[i+1:]
-                    ctr+=1
-            
-        viewUp = cushionedBoard[blk:blk- 3 * (wid+2) -1:-(wid+2)]
-        if "#" in viewUp[1:] :
-            #print('this shouldnt happen')
-            blockInOneOfThem = True
-            otherBlkIndex = viewUp[1:].index("#") + 1
-            if otherBlkIndex != 1:
-                if any([True for letter in viewUp[0:otherBlkIndex] if letter in alphabetString]):
-                    return -1
-                newView = viewUp
-                for l in range(0,otherBlkIndex):
-                    newView= newView[:l] + "#" + newView[l+1:]
-                    if l !=0:
-                        newlyAddedBlocks.append(cushionedIndex - l * (wid+2))
-                #print(newlyAddedBlocks)
-                ctr = 0
-                for i in range(blk,blk-len(newView)*(wid+2),-(wid+2)):
-                    cushionedBoard = cushionedBoard[:i] + newView[ctr] + cushionedBoard[i+1:]
-                    ctr-=1
             
 
     if not blockInOneOfThem:
 
         cushionedBoard =  cushionedBoard[: cushionedIndex] +  "#" +  cushionedBoard[cushionedIndex+1:] 
 
-
-  
-    
     #decushionize
     #call placeBlock() on opposite index
     #return whatever that returns
 
     #display2d(cushionedBoard,wid+2)
     return cushionedBoard
+
 
 def main():
     setGlobals()
@@ -245,7 +199,7 @@ def main():
     for sS in seedStrings:
         board = placeWord(board,sS,width)
     #display2d(board,width)
-    pB = placeBlock(board, 11,width,height)
+    pB = placeBlock(board, 2,width,height)
     if pB == -1:
         display2d(board,width)
     else:
@@ -262,3 +216,4 @@ if __name__ == '__main__':
 
 
 # Anmol Karan, pd 3, 2025
+    
