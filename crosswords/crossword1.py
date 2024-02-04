@@ -30,12 +30,14 @@ def setGlobals():
     global numBlocks
     global seedStrings
     global alphabetString
+    global inputtedBlocks
 
     alphabetString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
     height = 0
     width = 0
     numBlocks = 0
     seedStrings = []
+    inputtedBlocks = 0
 
     
 
@@ -58,6 +60,7 @@ def display2d(pzl,wid):
 
 
 def placeWord(board, seedStr,wid):
+    global inputtedBlocks
     dimStr = ""
     word = ""
     direction = seedStr[0]
@@ -77,40 +80,77 @@ def placeWord(board, seedStr,wid):
         wordIncrement = 0
         for i in range(startingInd,startingInd+ len(word)):
             if board[i] != "#"  and not (i%width == width-1 and wordIncrement <  len(word)-1):
-                board= board[:i] + word[wordIncrement] + board[i+1:]
-                wordIncrement+=1
+                if word[wordIncrement] == "#":
+                    # if i == 97:
+                    #     print(seedStr)
+                    #     display2d(board,width)
+                    prevNumBlocks = board.count("#")
+                    board = placeBlock(board,i,width,height)
+                    #display2d(board,wid)
+                    inputtedBlocks+= board.count("#") - prevNumBlocks
+                    wordIncrement+=1
+                    # if i == 97:
+                    #     display2d(board,width)
+                    #     exit()
+                else:
+                    board= board[:i] + word[wordIncrement] + board[i+1:]
+                    wordIncrement+=1
             else:
-                return -1
+                return 0
         return board
     if direction == "V":
         wordIncrement = 0
         for i in range(startingInd,len(board),width):
             if board[i] != "#":
-                board= board[:i] + word[wordIncrement] + board[i+1:]
-                wordIncrement+=1
+                if word[wordIncrement] == "#":
+                #     if i == 97:
+                        
+                #         display2d(board,width)
+                    prevNumBlocks = board.count("#")
+                    board = placeBlock(board,i,width,height)
+                    #display2d(board,wid)
+                    inputtedBlocks+= board.count("#") - prevNumBlocks
+                    wordIncrement+=1
+                    # if i == 97:
+                    #     display2d(board,width)
+                    #     exit()
+                else:
+                    board= board[:i] + word[wordIncrement] + board[i+1:]
+                    wordIncrement+=1
                 if wordIncrement >= len(word):
                     return board
             else:
-                return -1
+                return 0
         if wordIncrement !=  len(word)-1 : #the word hasnt fully even been spelled out
             return -1
         return board
 
 
-def placeBlocks(brd, remainingBlocks): #Bruteforce algorithm
-    #after calling placeBlock(), if there are more Added blocking squres than remaining blocks, then this sqare is not possible. 
-    # if it is, subtract the number of added blocks from remaining blocks
-    return
+
+def decushionize(brd, origWid,origHeight):
+    #newBrd = brd[origWid+2:]
+    newBrd = ""
+
+    for i in range(origHeight):
+        line = brd[(i+1)*(origWid+2) + 1 :(i+1)*(origWid+2) + 1 + origWid]
+        newBrd = newBrd + line
+    return newBrd
 
 
-def decuchionize():
-    return
+def CCWRotate(brd,wid):
 
-def getOppositeIndex():
+    finString = ""
+    for colStart in range(wid-1,-1,-1):
+        rs = brd[colStart:len(brd):wid]
+        finString+=rs
 
-    return
+    return finString
 
-def placeBlock(brd,spot,wid,ht):   #checks if a block can be placed in the spot
+
+
+
+
+def placeBlock(brd,spot,wid,ht, reversed = False):   #checks if a block can be placed in the spot. reversed means like am i nw placing the blocks after the 180 rotation
     cushionedBoard = "#"* wid + "##"
     for i in range(ht):
         cushionedBoard+="#" 
@@ -124,32 +164,42 @@ def placeBlock(brd,spot,wid,ht):   #checks if a block can be placed in the spot
     newlyAddedBlocks = [cushionedIndex]
     blockInOneOfThem = False
 
-    
+    #display2d(cushionedBoard,wid+2)
+    # print(corners)
+    # exit()
     
     while newlyAddedBlocks:
         # display2d(cushionedBoard,wid+2)
         #print(newlyAddedBlocks)
         blk = newlyAddedBlocks.pop(0)
-        yCoordOfBlk = blk //(wid+2)
+        
+        #print(spot)
+        #exit()
+        yCoordOfBlk = blk //(wid+2) -1
         if cushionedBoard[blk] not in  "-#":
 
-            return -1
+            return 0
         # if cushionedBoard[blk] == "#":
         #     #display2d(cushionedBoard,wid+2)
         #     #make sure to decushionize the board
         #     return cushionedBoard
         
-
-            
+       
         viewRight = cushionedBoard[blk:blk+4] #rightwards
         if "#" in viewRight[1:]:
+
+
+            if cushionedBoard[blk] in alphabetString:
+                return 0 
+                
+            
             #print("viewing right", blk)
             #print('this shouldnt happen')
             blockInOneOfThem = True
             otherBlkIndex = viewRight[1:].index("#") + 1
             if otherBlkIndex != 1:
                 if any([True for letter in viewRight[0:otherBlkIndex] if letter in alphabetString]):
-                    return -1
+                    return 0
                 newView = viewRight
                 for l in range(0,otherBlkIndex):
                     newView= newView[:l] + "#" + newView[l+1:]
@@ -158,16 +208,24 @@ def placeBlock(brd,spot,wid,ht):   #checks if a block can be placed in the spot
                 #print(newlyAddedBlocks)
                 ctr = 0
                 for i in range(blk,blk+4):
-                    cushionedBoard = cushionedBoard[:cushionedIndex + ctr] + newView[ctr] + cushionedBoard[cushionedIndex +ctr+1:]
+                    cushionedBoard = cushionedBoard[:blk + ctr] + newView[ctr] + cushionedBoard[blk +ctr+1:]
                     ctr+=1
 
         viewLeft = cushionedBoard[blk:blk-4:-1]
-        if "#" in viewLeft[1:]:
+        if "#" in viewLeft[1:] :
+            if cushionedBoard[blk] in alphabetString:
+                return 0 
+                
+            # if cushionedBoard[blk-1] == "#":   
+            #     cushionedBoard = cushionedBoard[:blk] + "#"+ cushionedBoard[blk+1:]  
+            #     continue
             blockInOneOfThem = True
             otherBlkIndex = viewLeft[1:].index("#")+1
+            #print(viewLeft)
             if otherBlkIndex != 1:
+
                 if any([True for letter in viewLeft[0:otherBlkIndex] if letter in alphabetString]):
-                    return -1
+                    return 0
                 newView = viewLeft
                 for l in range(0,otherBlkIndex):
                     newView= newView[:l] + "#" + newView[l+1:]
@@ -176,19 +234,27 @@ def placeBlock(brd,spot,wid,ht):   #checks if a block can be placed in the spot
 
                 ctr = 0 #fix this whoops
                 for i in range(0,otherBlkIndex):
-                    cushionedBoard = cushionedBoard[:cushionedIndex+ ctr] + newView[i] + cushionedBoard[cushionedIndex +ctr+1:]
+                    cushionedBoard = cushionedBoard[:blk+ ctr] + newView[i] + cushionedBoard[blk +ctr+1:]
                     ctr -=1
+            
 
 
         viewDown = cushionedBoard[blk:blk+ 4 * (wid+2) :wid+2] #rightwards
    
-        if "#" in viewDown[1:] :
+        if "#" in viewDown[1:]:
+
+            if cushionedBoard[blk] in alphabetString:
+                return 0 
+                
+            # if cushionedBoard[blk+wid] == "#":   
+            #     cushionedBoard = cushionedBoard[:blk] + "#"+ cushionedBoard[blk+1:]  
+            #     continue
             #print('this shouldnt happen')
             blockInOneOfThem = True
             otherBlkIndex = viewDown[1:].index("#") + 1
             if otherBlkIndex != 1:
                 if any([True for letter in viewDown[0:otherBlkIndex] if letter in alphabetString]):
-                    return -1
+                    return 0
                 newView = viewDown
                 for l in range(0,otherBlkIndex):
                     newView= newView[:l] + "#" + newView[l+1:]
@@ -200,15 +266,24 @@ def placeBlock(brd,spot,wid,ht):   #checks if a block can be placed in the spot
                     cushionedBoard = cushionedBoard[:i] + newView[ctr] + cushionedBoard[i+1:]
                     ctr+=1
             
-        viewUp = cushionedBoard[blk:blk- yCoordOfBlk * (wid+2) -1:-(wid+2)]
+        viewUp = cushionedBoard[blk:blk- (yCoordOfBlk+1 if yCoordOfBlk <=2 else 3) * (wid+2)-1 :-(wid+2)]
         if "#" in viewUp[1:] :
-            #print('this shouldnt happen')
+
+            if cushionedBoard[blk] in alphabetString:
+                return 0 
+                
+                
+            # if cushionedBoard[blk-wid] == "#":   
+            #     cushionedBoard = cushionedBoard[:blk] + "#"+ cushionedBoard[blk+1:]  
+            #     continue
+
             blockInOneOfThem = True
             otherBlkIndex = viewUp[1:].index("#") + 1
             if otherBlkIndex != 1:
                 if any([True for letter in viewUp[0:otherBlkIndex] if letter in alphabetString]):
-                    return -1
+                    return 0
                 newView = viewUp
+
                 for l in range(0,otherBlkIndex):
                     newView= newView[:l] + "#" + newView[l+1:]
                     if l !=0:
@@ -220,19 +295,58 @@ def placeBlock(brd,spot,wid,ht):   #checks if a block can be placed in the spot
                     ctr+=1   #not sure if this should be - or +
             
 
+        cushionedBoard =  cushionedBoard[: cushionedIndex] +  "#" +  cushionedBoard[cushionedIndex+1:] 
     if not blockInOneOfThem:
 
         cushionedBoard =  cushionedBoard[: cushionedIndex] +  "#" +  cushionedBoard[cushionedIndex+1:] 
 
-
-  
     
-    #decushionize
-    #call placeBlock() on opposite index
-    #return whatever that returns
+  
 
-    #display2d(cushionedBoard,wid+2)
-    return cushionedBoard
+    midBoard = decushionize(cushionedBoard,wid,ht)
+
+    if not reversed:
+        rotated = CCWRotate(CCWRotate(midBoard,ht),wid)
+        
+        finBoard = placeBlock(rotated,spot,wid,ht,True)
+        if finBoard:
+            return finBoard
+        else:
+            return 0
+    else:
+        rotated = CCWRotate(CCWRotate(midBoard,ht),wid)
+
+        return rotated
+
+
+
+
+def placeAllBlocks(brd, remainingBlocks): #Bruteforce algorithm, remaining blocks is Int
+    #after calling placeBlock(), if there are more Added blocking squres than remaining blocks, then this sqare is not possible. 
+    # if it is, subtract the number of added blocks from remaining blocks
+
+    if remainingBlocks == 0:
+        return brd
+
+    for ind, obj in enumerate(brd):
+        if obj == "-":
+            blocksBeforePlacement = brd.count("#")
+            placed = placeBlock(brd,ind,width,height, False)
+
+            if not placed:
+                continue
+            addedBlocks = placed.count("#") - blocksBeforePlacement
+            if addedBlocks > remainingBlocks:
+                continue
+            return placeAllBlocks(placed,remainingBlocks-addedBlocks)
+
+
+
+
+
+
+    return "hi"
+
 
 def main():
     setGlobals()
@@ -246,11 +360,22 @@ def main():
     for sS in seedStrings:
         board = placeWord(board,sS,width)
     #display2d(board,width)
-    pB = placeBlock(board, 13,width,height)
-    if pB == -1:
-        display2d(board,width)
-    else:
-        display2d(pB,width+2)
+    # pB = placeBlock(board, 41,width,height)
+    # if pB == -1:
+    #     #this spot is not placeable
+    #     display2d(board,width)
+    # else:
+    #     display2d(pB,width)
+    totalBlocks = numBlocks-inputtedBlocks
+    placed = placeAllBlocks(board,totalBlocks)
+  
+    # display2d("m u t e - - - - - - - - - - -u - - - - - - - - - - - - - -l - - - - - - - - - - - - - -e - - - # - - - - - - - - - -- - - - - - - - - - - - - - -- - - - - - - - - - - - - - -- - - - - - - - - - - - - - -- - - - - # - - - # - - - - -- - - - - - - - - - - - - - -- - - - - - - - - - - - - - -- - - - - - - - - - - - - B -- - - - - - - - - - # - - o -- - - - - - - - - - - - - u -- - - - - - - - - - - - - n -- - - - - - - - - - - - - d -".replace(' ',''),width)
+    
+    #placed = placeBlock("m u t e - - - - - - - - - - -u - - - - - - - - - - - - - -l - - - - - - - - - - - - - -e - - - # - - - - - - - - - -- - - - - - - - - - - - - - -- - - - - - - - - - - - - - -- - - - - - - - - - - - - - -- - - - - # - - - # - - - - -- - - - - - - - - - - - - - -- - - - - - - - - - - - - - -- - - - - - - - - - - - - B -- - - - - - - - - - # - - o -- - - - - - - - - - - - - u -- - - - - - - - - - - - - n -- - - - - - - - - - - - - d -".replace(' ',''),97,width,height)
+    if placed:
+        display2d(placed,width)
+
+
 
 
     

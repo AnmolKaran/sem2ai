@@ -188,24 +188,26 @@ def placeBlock(brd,spot,wid,ht):   #checks if a block can be placed in the spot
 
 
 def main():
-    setGlobals()
-    parseArgs(args)
-    board = "-" * height * width
-    if height * width == numBlocks:
-        board = "#" * height * width
-        display2d(board,width)
-        exit()
+    # setGlobals()
+    # parseArgs(args)
+    # board = "-" * height * width
+    # if height * width == numBlocks:
+    #     board = "#" * height * width
+    #     display2d(board,width)
+    #     exit()
 
-    for sS in seedStrings:
-        board = placeWord(board,sS,width)
-    #display2d(board,width)
-    pB = placeBlock(board, 2,width,height)
-    if pB == -1:
-        display2d(board,width)
-    else:
-        display2d(pB,width+2)
-
-
+    # for sS in seedStrings:
+    #     board = placeWord(board,sS,width)
+    # #display2d(board,width)
+    # pB = placeBlock(board, 2,width,height)
+    # if pB == -1:
+    #     display2d(board,width)
+    # else:
+    #     display2d(pB,width+2)
+    b = '##################-d-------------##-n-------------##-u-------------##-o--#----------##-B-------------##---------------##-------###-----##-----#-#-#-----##-------#-------##---------------##---------------##----------#---e##--------------l##--------------u##-----------etum##################'
+    display2d(b,17)
+    p = b[144]
+    print(p)
     
 
 
