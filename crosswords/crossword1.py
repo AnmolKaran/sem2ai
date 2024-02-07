@@ -76,10 +76,13 @@ def placeWord(board, seedStr,wid):
     yCoord = int(splitted[0])
     xCoord = int(splitted[1])
     startingInd = yCoord * wid + xCoord
+    direction = direction.upper()
     if direction == "H":
         wordIncrement = 0
+        if not word:
+            word = "#"
         for i in range(startingInd,startingInd+ len(word)):
-            if board[i] != "#"  and not (i%width == width-1 and wordIncrement <  len(word)-1):
+            if not (board[i] == "#" and word[wordIncrement] in alphabetString )and not (i%width == width-1 and wordIncrement <  len(word)-1):
                 if word[wordIncrement] == "#":
                     # if i == 97:
                     #     print(seedStr)
@@ -96,12 +99,16 @@ def placeWord(board, seedStr,wid):
                     board= board[:i] + word[wordIncrement] + board[i+1:]
                     wordIncrement+=1
             else:
+
                 return 0
         return board
     if direction == "V":
         wordIncrement = 0
+        if not word:
+            word = "#"
         for i in range(startingInd,len(board),width):
-            if board[i] != "#":
+            
+            if not (board[i] == "#" and word[wordIncrement] in alphabetString ):
                 if word[wordIncrement] == "#":
                 #     if i == 97:
                         
@@ -123,6 +130,7 @@ def placeWord(board, seedStr,wid):
                 return 0
         if wordIncrement !=  len(word)-1 : #the word hasnt fully even been spelled out
             return -1
+
         return board
 
 
@@ -338,14 +346,9 @@ def placeAllBlocks(brd, remainingBlocks): #Bruteforce algorithm, remaining block
             addedBlocks = placed.count("#") - blocksBeforePlacement
             if addedBlocks > remainingBlocks:
                 continue
+
             return placeAllBlocks(placed,remainingBlocks-addedBlocks)
-
-
-
-
-
-
-    return "hi"
+    return brd
 
 
 def main():
@@ -358,14 +361,18 @@ def main():
         exit()
 
     for sS in seedStrings:
+        # print(board)
+        preboard = board
         board = placeWord(board,sS,width)
-    #display2d(board,width)
-    # pB = placeBlock(board, 41,width,height)
-    # if pB == -1:
-    #     #this spot is not placeable
-    #     display2d(board,width)
-    # else:
-    #     display2d(pB,width)
+        if board == None:
+            display2d(preboard,width)
+            print(sS)
+            exit()
+        # if not board:
+        #     print(board)
+        #     exit()
+
+
     totalBlocks = numBlocks-inputtedBlocks
     placed = placeAllBlocks(board,totalBlocks)
   
