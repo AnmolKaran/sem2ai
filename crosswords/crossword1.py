@@ -1,6 +1,7 @@
 import sys; args = sys.argv[1:]
 
-
+#CASES NOT WORKING: 14x16 102 h3x2 h2x4 V4x5 h7x5 h9x7 V9x5
+            #       6x6 22
 
 
 def parseArgs(argList):
@@ -88,9 +89,9 @@ def placeWord(board, seedStr,wid):
                     #     print(seedStr)
                     #     display2d(board,width)
                     prevNumBlocks = board.count("#")
-                    board = placeBlock(board,i,width,height)
+                    board = placeBlock(board,i,width,height,False,True)
                     #display2d(board,wid)
-                    inputtedBlocks+= board.count("#") - prevNumBlocks
+                    #inputtedBlocks+= board.count("#") - prevNumBlocks
                     wordIncrement+=1
                     # if i == 97:
                     #     display2d(board,width)
@@ -114,9 +115,9 @@ def placeWord(board, seedStr,wid):
                         
                 #         display2d(board,width)
                     prevNumBlocks = board.count("#")
-                    board = placeBlock(board,i,width,height)
+                    board = placeBlock(board,i,width,height,False,True)
                     #display2d(board,wid)
-                    inputtedBlocks+= board.count("#") - prevNumBlocks
+                    #inputtedBlocks+= board.count("#") - prevNumBlocks
                     wordIncrement+=1
                     # if i == 97:
                     #     display2d(board,width)
@@ -158,7 +159,8 @@ def CCWRotate(brd,wid):
 
 
 
-def placeBlock(brd,spot,wid,ht, reversed = False):   #checks if a block can be placed in the spot. reversed means like am i nw placing the blocks after the 180 rotation
+def placeBlock(brd,spot,wid,ht, reversed = False,inInitial = False):   #checks if a block can be placed in the spot. reversed means like am i nw placing the blocks after the 180 rotation
+
     cushionedBoard = "#"* wid + "##"
     for i in range(ht):
         cushionedBoard+="#" 
@@ -192,11 +194,13 @@ def placeBlock(brd,spot,wid,ht, reversed = False):   #checks if a block can be p
         #     #make sure to decushionize the board
         #     return cushionedBoard
         
-       
+
         viewRight = cushionedBoard[blk:blk+4] #rightwards
+        
         if "#" in viewRight[1:]:
 
-
+            if spot == 34:
+                display2d(brd,wid)
             if cushionedBoard[blk] in alphabetString:
                 return 0 
                 
@@ -275,6 +279,7 @@ def placeBlock(brd,spot,wid,ht, reversed = False):   #checks if a block can be p
                     ctr+=1
             
         viewUp = cushionedBoard[blk:blk- (yCoordOfBlk+1 if yCoordOfBlk <=2 else 3) * (wid+2)-1 :-(wid+2)]
+
         if "#" in viewUp[1:] :
 
             if cushionedBoard[blk] in alphabetString:
@@ -315,17 +320,65 @@ def placeBlock(brd,spot,wid,ht, reversed = False):   #checks if a block can be p
 
     if not reversed:
         rotated = CCWRotate(CCWRotate(midBoard,ht),wid)
-        
-        finBoard = placeBlock(rotated,spot,wid,ht,True)
+        if inInitial:
+            finBoard = placeBlock(rotated,spot,wid,ht,True,True)
+        else:
+            finBoard = placeBlock(rotated,spot,wid,ht,True,False)
         if finBoard:
-            return finBoard
+            #return finBoard
+            if  inInitial:
+                return finBoard
+            if checkConnectivity(finBoard,width,height):
+                return finBoard
+            else:
+                return 0
         else:
             return 0
     else:
         rotated = CCWRotate(CCWRotate(midBoard,ht),wid)
+        if  inInitial:
+            return rotated
+        isConnected = checkConnectivity(rotated,width,height)
+        if isConnected:
+            return rotated
+        else:
+            return 0
 
-        return rotated
 
+def checkConnectivity(brd,wid,ht): #finish;
+    # this is a dfs that checks if the graph is connected
+    
+    cushionedBoard = "#"* wid + "##"
+    for i in range(ht):
+        cushionedBoard+="#" 
+        cushionedBoard += brd[i*wid:i*wid+wid]
+        cushionedBoard+="#"
+    cushionedBoard += "#"* wid + "##"
+    adjList ={ ind:[] for ind, s in enumerate(cushionedBoard) if (s == "-" or s in alphabetString)}
+    for ind, spot in enumerate(cushionedBoard):
+        if not (spot == "-" or spot in alphabetString): continue
+        neighbors  = [ind+1,ind-1,ind+wid+2,ind-(wid+2)]
+        for nbr in neighbors:
+            if cushionedBoard[nbr] != "#":
+                adjList[ind].append(nbr)
+    if not adjList:
+        return True
+    visited = {ind:False for ind in adjList}
+ 
+    myStack = [] 
+    myStack.append(list(adjList.keys())[0])
+    
+    while myStack:
+        curr = myStack.pop()
+        if visited[curr]:
+            continue
+        visited[curr] = True
+        for nbr in adjList[curr]:
+            myStack.append(nbr)
+    if all(visited.values()):
+        return True    
+    else: return False            
+       
 
 
 
@@ -361,27 +414,21 @@ def main():
         exit()
 
     for sS in seedStrings:
-        # print(board)
         preboard = board
         board = placeWord(board,sS,width)
-        if board == None:
+
+        if board == 0:
             display2d(preboard,width)
             print(sS)
             exit()
-        # if not board:
-        #     print(board)
-        #     exit()
-
-
+    inputtedBlocks = board.count("#")
     totalBlocks = numBlocks-inputtedBlocks
     placed = placeAllBlocks(board,totalBlocks)
   
-    # display2d("m u t e - - - - - - - - - - -u - - - - - - - - - - - - - -l - - - - - - - - - - - - - -e - - - # - - - - - - - - - -- - - - - - - - - - - - - - -- - - - - - - - - - - - - - -- - - - - - - - - - - - - - -- - - - - # - - - # - - - - -- - - - - - - - - - - - - - -- - - - - - - - - - - - - - -- - - - - - - - - - - - - B -- - - - - - - - - - # - - o -- - - - - - - - - - - - - u -- - - - - - - - - - - - - n -- - - - - - - - - - - - - d -".replace(' ',''),width)
     
-    #placed = placeBlock("m u t e - - - - - - - - - - -u - - - - - - - - - - - - - -l - - - - - - - - - - - - - -e - - - # - - - - - - - - - -- - - - - - - - - - - - - - -- - - - - - - - - - - - - - -- - - - - - - - - - - - - - -- - - - - # - - - # - - - - -- - - - - - - - - - - - - - -- - - - - - - - - - - - - - -- - - - - - - - - - - - - B -- - - - - - - - - - # - - o -- - - - - - - - - - - - - u -- - - - - - - - - - - - - n -- - - - - - - - - - - - - d -".replace(' ',''),97,width,height)
     if placed:
         display2d(placed,width)
-
+    
 
 
 
