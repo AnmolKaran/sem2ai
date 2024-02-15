@@ -110,6 +110,44 @@ def getOppositeIndex():
 
     return
 
+
+
+
+def checkConnectivity(brd,wid,ht): #finish;
+    # this is a dfs that checks if the graph is connected
+    
+    cushionedBoard = "#"* wid + "##"
+    for i in range(ht):
+        cushionedBoard+="#" 
+        cushionedBoard += brd[i*wid:i*wid+wid]
+        cushionedBoard+="#"
+    cushionedBoard += "#"* wid + "##"
+    adjList ={ ind:[] for ind, s in enumerate(cushionedBoard) if (s == "-" or s in alphabetString)}
+    for ind, spot in enumerate(cushionedBoard):
+        if not (spot == "-" or spot in alphabetString): continue
+        neighbors  = [ind+1,ind-1,ind+wid+2,ind-(wid+2)]
+        for nbr in neighbors:
+            if cushionedBoard[nbr] != "#":
+                adjList[ind].append(nbr)
+    if not adjList:
+        return True
+    visited = {ind:False for ind in adjList}
+ 
+    myStack = [] 
+    myStack.append(list(adjList.keys())[0])
+    
+    while myStack:
+        curr = myStack.pop()
+        if visited[curr]:
+            continue
+        visited[curr] = True
+        for nbr in adjList[curr]:
+            myStack.append(nbr)
+    if all(visited.values()):
+        return True    
+    else: return False            
+       
+
 def placeBlock(brd,spot,wid,ht):   #checks if a block can be placed in the spot
     cushionedBoard = "#"* wid + "##"
     for i in range(ht):
@@ -188,26 +226,27 @@ def placeBlock(brd,spot,wid,ht):   #checks if a block can be placed in the spot
 
 
 def main():
-    # setGlobals()
-    # parseArgs(args)
-    # board = "-" * height * width
-    # if height * width == numBlocks:
-    #     board = "#" * height * width
-    #     display2d(board,width)
-    #     exit()
+    setGlobals()
+    parseArgs(args)
+    board = "-" * height * width
+    if height * width == numBlocks:
+        board = "#" * height * width
+        display2d(board,width)
+        exit()
 
-    # for sS in seedStrings:
-    #     board = placeWord(board,sS,width)
-    # #display2d(board,width)
+    for sS in seedStrings:
+        board = placeWord(board,sS,width)
+    # display2d(board,width)
     # pB = placeBlock(board, 2,width,height)
     # if pB == -1:
     #     display2d(board,width)
     # else:
     #     display2d(pB,width+2)
-    b = '--------#--------------------------------------#------------#--------------------------------------#--------'
-    display2d(b,12)
-    p = b[144]
-    print(p)
+    # b = '--------#--------------------------------------#------------#--------------------------------------#--------'
+    # display2d(b,12)
+    # p = b[144]
+    # print(p)
+    print(checkConnectivity(board,width,height))
     
 
 
