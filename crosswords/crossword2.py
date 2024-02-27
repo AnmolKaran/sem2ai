@@ -1,11 +1,9 @@
 import sys; args = sys.argv[1:]
 
-#CASES NOT WORKING: 14x16 102 h3x2 h2x4 V4x5 h7x5 h9x7 V9x5
-            #       6x6 22
 
 
 def parseArgs(argList):
-    for arg in argList:
+    for i, arg in enumerate(argList):
 
         if ("x" in arg or "X" in arg) and not (arg[0].upper() in "VH") and  ".txt" not in arg:
             splitted = arg.lower().split("x")  
@@ -19,6 +17,11 @@ def parseArgs(argList):
         elif ("x" in arg or "X" in arg) and  ".txt" not in arg:
             global seedStrings
             seedStrings.append(arg)
+        elif "txt" in arg:  
+            global lengthToWords
+            linesOfFile = open(args[0]).read().splitlines()
+            for line in linesOfFile:
+                lengthToWords[len(line)].append(line)
 
 
 
@@ -32,6 +35,8 @@ def setGlobals():
     global seedStrings
     global alphabetString
     global inputtedBlocks
+    global words
+    global lengthToWords
 
     alphabetString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
     height = 0
@@ -39,9 +44,9 @@ def setGlobals():
     numBlocks = 0
     seedStrings = []
     inputtedBlocks = 0
+    lengthToWords = {i+1:[] for i in range(50)}
 
     
-
 
 def display2d(pzl,wid):
    startIndeces = [q for q in range(0,len(pzl),wid) ]
@@ -136,15 +141,6 @@ def placeWord(board, seedStr,wid):
 
 
 
-def decushionize(brd, origWid,origHeight):
-    #newBrd = brd[origWid+2:]
-    newBrd = ""
-
-    for i in range(origHeight):
-        line = brd[(i+1)*(origWid+2) + 1 :(i+1)*(origWid+2) + 1 + origWid]
-        newBrd = newBrd + line
-    return newBrd
-
 
 def CCWRotate(brd,wid):
 
@@ -156,6 +152,16 @@ def CCWRotate(brd,wid):
     return finString
 
 
+
+
+def decushionize(brd, origWid,origHeight):
+    #newBrd = brd[origWid+2:]
+    newBrd = ""
+
+    for i in range(origHeight):
+        line = brd[(i+1)*(origWid+2) + 1 :(i+1)*(origWid+2) + 1 + origWid]
+        newBrd = newBrd + line
+    return newBrd
 
 
 
@@ -344,10 +350,13 @@ def placeBlock(brd,spot,wid,ht, reversed = False,inInitial = False):   #checks i
             return 0
 
 
+
+
 def checkConnectivity(brd,wid,ht): #finish;
     # this is a dfs that checks if the graph is connected
     
     cushionedBoard = "#"* wid + "##"
+
     for i in range(ht):
         cushionedBoard+="#" 
         cushionedBoard += brd[i*wid:i*wid+wid]
@@ -376,8 +385,11 @@ def checkConnectivity(brd,wid,ht): #finish;
             myStack.append(nbr)
     if all(visited.values()):
         return True    
-    else: return False            
-       
+    else: return False   
+
+
+
+
 
 
 
@@ -403,6 +415,195 @@ def placeAllBlocks(brd, remainingBlocks): #Bruteforce algorithm, remaining block
     return brd
 
 
+def getWordLengths(brd,placement):
+    totalLenOfWords = 0
+
+
+
+def antiClumpPlaceBlocks(brd,wid,ht, remainingBlocks):
+
+    cushionedBoard = "#"* wid + "##"
+    for i in range(ht):
+        cushionedBoard+="#" 
+        cushionedBoard += brd[i*wid:i*wid+wid]
+        cushionedBoard+="#"
+    cushionedBoard += "#"* wid + "##"
+    scores = {i:200 for i in range(len(cushionedBoard)) if cushionedBoard[i] =="-"}
+    maxDist = 1000
+    indexToSpaces = {}
+    w = wid + 2 #with the augment
+    h = ht+1 #with the augment
+    for ind, obj in enumerate(cushionedBoard):
+        if obj != "-":
+            continue
+
+
+        #check right
+        for i in range(ind+1,ind//w+w):
+            if i >2:
+                scores[ind] += 30
+                break
+            elif i <=2 and cushionedBoard[ind] == "#":
+                scores[ind]-=30
+                break
+        
+
+        #check left
+        inc = 0
+        for i in range(ind-1,ind//w,-1):
+            inc+=1
+            if inc >2:
+                scores[ind] += 30
+                break
+            elif inc <=2 and cushionedBoard[ind] == "#":
+                scores[ind]-=30
+                break
+        
+
+        #check up
+        inc = 0
+        for i in range(ind,0,-w):
+            inc+=1
+            if inc >3:
+                scores[ind] += 30
+                break
+            elif inc <=3 and cushionedBoard[ind] == "#":
+                scores[ind]-=30
+                break
+        
+        #check down
+        inc = 0
+        for i in range(ind,len(cushionedBoard),w):
+            inc+=1
+            if inc >3:
+                scores[ind] += 30
+                break
+            elif inc <=3 and cushionedBoard[ind] == "#":
+                scores[ind]-=30
+                break
+                
+        center = len(cushionedBoard)//2
+        manhattanDist = mdTile(cushionedBoard,center,ind)
+        scores[ind] += 3* (100- manhattanDist)
+    
+ 
+
+    sortedScores = dict(sorted(scores.items(), key=lambda item: item[1], reverse=True))
+
+    print(sortedScores)
+    while remainingBlocks>0:
+        for ind in sortedScores:
+            ogBlocks = cushionedBoard.count("#")
+            if sortedScores[ind] != 0:
+
+                ogInd = (ind%w -1 ) + (ind//h -1)* ht
+
+                display2d(cushionedBoard,w)
+                print(ind)
+                newBrd = placeBlock(decushionize(cushionedBoard,wid,ht),ogInd,wid,ht)
+                if newBrd == 0:continue
+                display2d(newBrd,wid)
+                cushionedBoard = "#"* wid + "##"
+                for i in range(ht):
+                    cushionedBoard+="#" 
+                    cushionedBoard += newBrd[i*wid:i*wid+wid]
+                    cushionedBoard+="#"
+                cushionedBoard += "#"* wid + "##"
+                remainingBlocks -= (ogBlocks - cushionedBoard.count("#"))
+                sortedScores[ind] = 0
+                if remainingBlocks <= 0:
+                    break
+    finboard = decushionize(cushionedBoard,wid,ht)
+
+
+def mdTile(pzl,goalpos,currpos):
+    
+   
+    column = currpos//width
+    row = currpos%height
+    goalcolumn = goalpos//width
+    goalrow = goalpos%height
+    return (abs(goalcolumn-column) + abs(goalrow-row))
+
+            
+
+
+
+
+    
+
+
+
+
+def placeHorizontally(brd,wid):
+    brd = brd.lower()
+    display2d(brd,wid)
+    print()
+    lines = []
+    usedWords = set()
+    for i in range (0,len(brd),wid):
+        lines.append(brd[i:i+wid])
+    for ind, line in enumerate(lines):
+
+        availSpaces = []
+        for indx, ch in enumerate(line):
+            if ch == "#":
+                availSpaces.append("#")
+            else:
+                if indx != 0 and line[indx-1] !="#":
+                    continue
+                nextBlock = line[indx:].find("#")
+                if nextBlock == -1: 
+                    availSpaces.append(line[indx:])
+                    break
+                availSpaces.append(line[indx:][0:nextBlock])
+
+        for spaceInd, space in enumerate(availSpaces):
+            if len(space) == 0:
+                availSpaces[spaceInd] = "#"
+                continue
+            word = space
+            charInds = {i:ch for i, ch in enumerate(word) if ch !="-"} #placed in the space where there are already characters 
+            for w in lengthToWords[len(space)]:
+                possibleWord = True
+                for i in charInds:      
+                    if w[i] != charInds[i]:
+                        possibleWord = False
+                if not possibleWord:continue
+                if w not in usedWords:
+                    
+                    word = w
+                    usedWords.add(word)
+                    
+                    break
+            availSpaces[spaceInd] = word
+        
+        newLine = ''
+        newLine = ''.join(availSpaces)
+        # print(availSpaces)
+        # if all([c=="#" for c in availSpaces]):
+        #     newLine  = newLine + "#" * wid
+        # else:
+        #     for indx,chunk in enumerate(availSpaces):
+
+        #         if indx == len(availSpaces)-1:
+        #             newLine = newLine + chunk
+        #             break
+                
+        #         if chunk !="#" and availSpaces[indx+1] != "#":
+        #             newLine = newLine + chunk + "#"
+        #         else:
+        #             newLine = newLine + chunk
+
+        lines[ind] = newLine
+    finBoard = ''.join(lines)
+    return finBoard
+            
+        
+                
+
+
+
 def main():
     setGlobals()
     parseArgs(args)
@@ -411,7 +612,6 @@ def main():
         board = "#" * height * width
         #display2d(board,width)
         exit()
-
     for sS in seedStrings:
         preboard = board
         board = placeWord(board,sS,width)
@@ -420,24 +620,19 @@ def main():
             display2d(preboard,width)
             print(sS)
             exit()
+
+
     inputtedBlocks = board.count("#")
     totalBlocks = numBlocks-inputtedBlocks
-    placed = placeAllBlocks(board,totalBlocks)
-  
-    
-    if placed:
-        display2d(placed,width)
-    
+    placed = antiClumpPlaceBlocks(board,width,height,totalBlocks)
+    #placedWords = placeHorizontally(placed,width)
 
-
-
-    
+    display2d(placed,width)  
 
 
 if __name__ == '__main__': 
     
 
     main()
-
 
 # Anmol Karan, pd 3, 2025
