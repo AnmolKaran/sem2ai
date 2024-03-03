@@ -1,5 +1,5 @@
 import sys; args = sys.argv[1:]
-
+import time
 
 
 def parseArgs(argList):
@@ -21,7 +21,23 @@ def parseArgs(argList):
             global lengthToWords
             linesOfFile = open(args[0]).read().splitlines()
             for line in linesOfFile:
-                lengthToWords[len(line)].append(line)
+                lengthToWords[len(line)].append(line.lower())
+
+
+
+def finDict():
+    global bigDict
+
+    linesOfFile = open(args[0]).read().splitlines()
+    for line in linesOfFile:
+        length = len(line)
+        if length<3:continue
+        for ind,char in enumerate(line):
+            if not bigDict[(ind,char,length)]:
+                bigDict[(ind,char,length)] == set()
+            bigDict[(ind,char,length)].add(line)
+    
+
 
 
 
@@ -37,6 +53,7 @@ def setGlobals():
     global inputtedBlocks
     global words
     global lengthToWords
+    global specsToPoss
 
     alphabetString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
     height = 0
@@ -45,7 +62,12 @@ def setGlobals():
     seedStrings = []
     inputtedBlocks = 0
     lengthToWords = {i+1:[] for i in range(50)}
+    locationsToFill = []
+    specsToPoss = {}
 
+
+def elapsed_time():
+    return time.time() - start_time
     
 
 def display2d(pzl,wid):
@@ -54,7 +76,7 @@ def display2d(pzl,wid):
    for q in startIndeces:
        listPuzzle = list(pzl)
        theThing  = listPuzzle[q: q+wid]
-       listed.append(' '.join(theThing))
+       listed.append(''.join(theThing))
   
 
 
@@ -165,7 +187,7 @@ def decushionize(brd, origWid,origHeight):
 
 
 
-def placeBlock(brd,spot,wid,ht, reversed = False,inInitial = False):   #checks if a block can be placed in the spot. reversed means like am i nw placing the blocks after the 180 rotation
+def placeBlock(brd,spot,wid,ht, reversed = False,inInitial = False,alreadyCushioned = False):   #checks if a block can be placed in the spot. reversed means like am i nw placing the blocks after the 180 rotation
 
     cushionedBoard = "#"* wid + "##"
     for i in range(ht):
@@ -173,9 +195,14 @@ def placeBlock(brd,spot,wid,ht, reversed = False,inInitial = False):   #checks i
         cushionedBoard += brd[i*wid:i*wid+wid]
         cushionedBoard+="#"
     cushionedBoard += "#"* wid + "##"
-    yCoord = spot //wid
-    xCoord = spot%wid 
-    cushionedIndex =   wid+2 + (yCoord * (wid+2)) + 1 + xCoord
+
+    if alreadyCushioned == False:
+        yCoord = spot //wid
+        xCoord = spot%wid 
+        cushionedIndex =   wid+2 + (yCoord * (wid+2)) + 1 + xCoord
+    else:
+        cushionedIndex = spot
+
 
     newlyAddedBlocks = [cushionedIndex]
     blockInOneOfThem = False
@@ -317,7 +344,6 @@ def placeBlock(brd,spot,wid,ht, reversed = False,inInitial = False):   #checks i
     if not blockInOneOfThem:
 
         cushionedBoard =  cushionedBoard[: cushionedIndex] +  "#" +  cushionedBoard[cushionedIndex+1:] 
-
     
   
 
@@ -326,9 +352,16 @@ def placeBlock(brd,spot,wid,ht, reversed = False,inInitial = False):   #checks i
     if not reversed:
         rotated = CCWRotate(CCWRotate(midBoard,ht),wid)
         if inInitial:
-            finBoard = placeBlock(rotated,spot,wid,ht,True,True)
+            if alreadyCushioned:
+                finBoard = placeBlock(rotated,spot,wid,ht,reversed=True,inInitial=True,alreadyCushioned=True)
+            else:
+                finBoard = placeBlock(rotated,spot,wid,ht,reversed=True,inInitial=True,alreadyCushioned=False)
         else:
-            finBoard = placeBlock(rotated,spot,wid,ht,True,False)
+            if alreadyCushioned:
+                finBoard = placeBlock(rotated,spot,wid,ht,reversed=True,inInitial=False,alreadyCushioned=True)
+            else:
+                finBoard = placeBlock(rotated,spot,wid,ht,reversed=True,inInitial=False,alreadyCushioned=False)
+
         if finBoard:
             #return finBoard
             if  inInitial:
@@ -415,105 +448,132 @@ def placeAllBlocks(brd, remainingBlocks): #Bruteforce algorithm, remaining block
     return brd
 
 
-def getWordLengths(brd,placement):
-    totalLenOfWords = 0
+def otherClumpPlace(brd,wid,ht,remainingBlocks):
+    if remainingBlocks == 0:
+        return brd
+    placed= brd
+    while remainingBlocks !=0:
+        blocksBeforePlacement = placed.count("#")
+        bestBlock = findBestBlock(placed,wid,ht)
+        
+        placed = placeBlock(placed,bestBlock,wid,ht,False,False,True)
+        if not placed: continue
+        addedBlocks = placed.count("#") - blocksBeforePlacement
+        remainingBlocks-= addedBlocks
+        if addedBlocks > remainingBlocks:
+            continue
+    
+    return placed
+
+def antiClumpPlaceBlocks(brd,wid,ht,remainingBlocks,depth =0):
+    if elapsed_time() > 20:
+        print('cant do it')
+        return placeAllBlocks(brd,remainingBlocks)
+    if remainingBlocks == 0:
+        return brd
+    
+    cb = "#"* wid + "##"
+
+    for i in range(ht):
+        cb+="#" 
+        cb += brd[i*wid:i*wid+wid]
+        cb+="#"
+    cb += "#"* wid + "##"
+    impossibles = []
+
+    if remainingBlocks%2 != 1:
+
+        impossibles.append(len(cb)//2)
+        impossibles.append(len(cb)//2 + 1)
+        impossibles.append(len(cb)//2 - 1)
+        impossibles.append(len(cb)//2 - (wid+2))
+        impossibles.append(len(cb)//2 + (wid+2))
+    else:
+        brd[len(brd)//2] == "#"
+        remainingBlocks -=1
 
 
 
-def antiClumpPlaceBlocks(brd,wid,ht, remainingBlocks):
+    bestToWorst = []
+    inc = 3
+    for i in range(inc):
+        blk = findBestBlock(brd,wid,ht,impossibles)
+        impossibles.append(blk)
+        bestToWorst.append(blk)
 
+    bestToWorst = bestToWorst[:inc]
+
+    placed = brd
+    for ind in bestToWorst:
+
+            blocksBeforePlacement = brd.count("#")
+            placed = placeBlock(brd,ind,width,height, False,False,True)
+            if not placed:
+                continue
+            addedBlocks = placed.count("#") - blocksBeforePlacement
+            if addedBlocks > remainingBlocks:
+                continue
+            print()
+            display2d(placed,wid)
+            res = antiClumpPlaceBlocks(placed,wid,ht,remainingBlocks-addedBlocks,depth+1)
+            return res
+    #return placeAllBlocks(placed,remainingBlocks)
+
+
+
+
+def findBestBlock(brd,wid,ht,impsbls = []):
     cushionedBoard = "#"* wid + "##"
     for i in range(ht):
         cushionedBoard+="#" 
         cushionedBoard += brd[i*wid:i*wid+wid]
         cushionedBoard+="#"
     cushionedBoard += "#"* wid + "##"
-    scores = {i:200 for i in range(len(cushionedBoard)) if cushionedBoard[i] =="-"}
-    maxDist = 1000
-    indexToSpaces = {}
+    indToDist = {}
     w = wid + 2 #with the augment
-    h = ht+1 #with the augment
-    for ind, obj in enumerate(cushionedBoard):
-        if obj != "-":
+    h = ht+2 #with the augment
+
+    bestBlock = 0
+    for i in range(len(cushionedBoard)):
+        if i in impsbls:
             continue
+        if cushionedBoard[i] != "-" or CCWRotate(CCWRotate(cushionedBoard,w),w)[i] != "-":
+            continue
+        rightDist = 0
+        rightBoard = cushionedBoard[i+1:].split("#")
+        rightDist = len(rightBoard[0])
+
+        leftDist = 0
+        leftBoard = cushionedBoard[i-1::-1].split("#")
+
+        leftDist = len(leftBoard[0])
+
+        upBoard = cushionedBoard[i-w:0:-w].split("#")
+        upDist = len(upBoard[0])
+
+        downBoard = cushionedBoard[i+w:len(cushionedBoard):w].split("#")
+        downDist = len(downBoard[0])
+        totalDist = min( upDist,downDist)+ min(rightDist,leftDist)
 
 
-        #check right
-        for i in range(ind+1,ind//w+w):
-            if i >2:
-                scores[ind] += 30
-                break
-            elif i <=2 and cushionedBoard[ind] == "#":
-                scores[ind]-=30
-                break
-        
+        if not placeBlock(decushionize(cushionedBoard,wid,ht),i,wid,ht,False,False,True) == 0:
+            indToDist[i] = totalDist
 
-        #check left
-        inc = 0
-        for i in range(ind-1,ind//w,-1):
-            inc+=1
-            if inc >2:
-                scores[ind] += 30
-                break
-            elif inc <=2 and cushionedBoard[ind] == "#":
-                scores[ind]-=30
-                break
-        
 
-        #check up
-        inc = 0
-        for i in range(ind,0,-w):
-            inc+=1
-            if inc >3:
-                scores[ind] += 30
-                break
-            elif inc <=3 and cushionedBoard[ind] == "#":
-                scores[ind]-=30
-                break
-        
-        #check down
-        inc = 0
-        for i in range(ind,len(cushionedBoard),w):
-            inc+=1
-            if inc >3:
-                scores[ind] += 30
-                break
-            elif inc <=3 and cushionedBoard[ind] == "#":
-                scores[ind]-=30
-                break
-                
-        center = len(cushionedBoard)//2
-        manhattanDist = mdTile(cushionedBoard,center,ind)
-        scores[ind] += 3* (100- manhattanDist)
-    
- 
 
-    sortedScores = dict(sorted(scores.items(), key=lambda item: item[1], reverse=True))
+    if not indToDist:
+        return 0
+    sorted_dict = dict(sorted(indToDist.items(), key=lambda item: item[1],reverse=True))
+    first_key, first_value = next(iter(sorted_dict.items()))
 
-    print(sortedScores)
-    while remainingBlocks>0:
-        for ind in sortedScores:
-            ogBlocks = cushionedBoard.count("#")
-            if sortedScores[ind] != 0:
+    return first_key
 
-                ogInd = (ind%w -1 ) + (ind//h -1)* ht
 
-                display2d(cushionedBoard,w)
-                print(ind)
-                newBrd = placeBlock(decushionize(cushionedBoard,wid,ht),ogInd,wid,ht)
-                if newBrd == 0:continue
-                display2d(newBrd,wid)
-                cushionedBoard = "#"* wid + "##"
-                for i in range(ht):
-                    cushionedBoard+="#" 
-                    cushionedBoard += newBrd[i*wid:i*wid+wid]
-                    cushionedBoard+="#"
-                cushionedBoard += "#"* wid + "##"
-                remainingBlocks -= (ogBlocks - cushionedBoard.count("#"))
-                sortedScores[ind] = 0
-                if remainingBlocks <= 0:
-                    break
-    finboard = decushionize(cushionedBoard,wid,ht)
+
+      
+
+
+
 
 
 def mdTile(pzl,goalpos,currpos):
@@ -525,14 +585,7 @@ def mdTile(pzl,goalpos,currpos):
     goalrow = goalpos%height
     return (abs(goalcolumn-column) + abs(goalrow-row))
 
-            
-
-
-
-
-    
-
-
+        
 
 
 def placeHorizontally(brd,wid):
@@ -600,12 +653,143 @@ def placeHorizontally(brd,wid):
     return finBoard
             
         
+def getAllLocs(brd,wid):
+    global specsToPoss
+    locationsToFill = []
+    for ind, char in enumerate(brd):
+        if char != "#":
+            if ind%wid == 0 or (brd[ind-1] == "#" and  ind%wid > 0 ):
+                end = 0
+                inc = ind
+                indsInWord = []
+                first = True
+                for i in range(ind,len(brd)):
+                    if i%wid == 0 and first == False:
+                        break
+                        
+                    if brd[i] == "#":
+                        end = i
+                        break
+                    else:
+                        indsInWord.append(i)
+                    
+                    inc+=1
+                    first = False
+                if end == 0:
+                    end = inc
+                spec = brd[ind:end]
+                if spec not in specsToPoss:
                 
+                    for word in lengthToWords[len(spec)]:
+                        goodSoFar = True
+                        for i, char in enumerate(spec):
+                            if not (spec[i] == word[i] or spec[i] == "-"):
+                                goodSoFar = False
+                        if goodSoFar:
+                            if spec in specsToPoss:
+                                specsToPoss[spec].add(word)
+                            else:
+                                specsToPoss[spec] = {word}
+                locationsToFill.append((ind,spec,indsInWord))
+            
+            if ind //wid == 0 or (brd[ind-wid] == "#" and ind//wid > 0):
+                end = 0
+                inc = ind
+                indsInWord = []
+                first = True
+                for i in range(ind,len(brd),wid):
 
+                    if brd[i] == "#":
+                        end = i
+                        break
+                    else:
+                        indsInWord.append(i)
+                    
+                    inc+=wid
+
+                if end == 0:
+                    end = inc
+                spec = brd[ind:end:wid]
+                if spec not in specsToPoss:
+                    for word in lengthToWords[len(spec)]:
+                        goodSoFar = True
+                        for i, char in enumerate(spec):
+                            if not (spec[i] == word[i] or spec[i] == "-"):
+                                goodSoFar = False
+                        if goodSoFar:
+                            if spec in specsToPoss:
+                                specsToPoss[spec].add(word)
+                            else:
+                                specsToPoss[spec] = {word}
+                locationsToFill.append((ind,spec,indsInWord))
+
+
+    return locationsToFill
+
+def bF(brd,wid,usedWords = []):
+    brd = brd.lower()
+    print()
+    display2d(brd,wid)
+
+    wordLocations = getAllLocs(brd,wid)
+
+    for ind , loc in enumerate(wordLocations):
+        if loc[1].count("-") ==0:
+            if not loc[1] in lengthToWords[len(loc[1])]:
+               
+                return 0
+            wordLocations.remove(loc)
+        if not loc[1] in specsToPoss or len(specsToPoss[loc[1]]) == 0:
+            return 0
+
+    if brd.count("-") == 0:
+        return brd
+
+    locToBeFilled = 0
+    highestLength = 999999999999
+    candidates = set()
+    letterLocs = []
+    for ind, loc in enumerate(wordLocations):
+        if loc[1].count("-") == 0:
+            continue
+        if loc[1] not in specsToPoss or len(specsToPoss[loc[1]] )== 0:
+            return 0
+    
+        tempCands = specsToPoss[loc[1]]
+
+        lenPsbilities = len(tempCands)
+        if lenPsbilities < highestLength:
+            letterLocs = loc[2]
+            locToBeFilled = ind
+            highestLength = lenPsbilities
+            candidates = tempCands
+    for candidate in candidates:
+        if candidate in usedWords:
+            continue
+        usedWords.append(candidate)
+        newBrd = brd
+        inc = 0
+        for letter in letterLocs:
+            newBrd = newBrd[:letter] + candidate[inc]+ newBrd[letter+1:]
+            
+            inc +=1
+
+        bruted = bF(newBrd,wid,usedWords)
+        if bruted: return bruted
+        usedWords.remove(candidate)
+    return 0
+
+    
+    
+
+                
 
 
 def main():
     setGlobals()
+    global start_time 
+    start_time= time.time()
+
     parseArgs(args)
     board = "-" * height * width
     if height * width == numBlocks:
@@ -620,14 +804,21 @@ def main():
             display2d(preboard,width)
             print(sS)
             exit()
+        
+
+    
 
 
     inputtedBlocks = board.count("#")
     totalBlocks = numBlocks-inputtedBlocks
     placed = antiClumpPlaceBlocks(board,width,height,totalBlocks)
-    #placedWords = placeHorizontally(placed,width)
-
-    display2d(placed,width)  
+    #placed = antiClumpPlaceBlocks(board,width,height,totalBlocks)
+    display2d(placed,width)
+    #placed= "SUcHLEgOAFrOCArP"
+    placedWords = bF(placed.lower(),width)
+    print()
+    display2d(placedWords.lower(),width)  
+    # print('elapsed time: ' + str(elapsed_time()))
 
 
 if __name__ == '__main__': 
