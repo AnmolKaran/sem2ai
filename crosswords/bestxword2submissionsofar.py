@@ -760,8 +760,9 @@ def bF(brd,wid,usedWords = []):
         return brd
 
 
-    if elapsed_time() > 28:
+    if elapsed_time() > 25:
         print('placing hori')
+        exit()
         return placeHorizontally(brd,wid)
     locToBeFilled = 0
     highestLength = 999999999999
@@ -867,6 +868,7 @@ def main():
 
 if __name__ == '__main__': 
     
+
     main()
 
 # Anmol Karan, pd 3, 2025

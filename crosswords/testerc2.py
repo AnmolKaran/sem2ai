@@ -453,8 +453,6 @@ def otherClumpPlace(brd,wid,ht,remainingBlocks):
         return brd
     placed= brd
     while remainingBlocks !=0:
-        if time.time() - start_time > 5:
-            return placeAllBlocks(brd,remainingBlocks)
         blocksBeforePlacement = placed.count("#")
         bestBlock = findBestBlock(placed,wid,ht)
         
@@ -468,16 +466,11 @@ def otherClumpPlace(brd,wid,ht,remainingBlocks):
     return placed
 
 def antiClumpPlaceBlocks(brd,wid,ht,remainingBlocks,depth =0):
-    if wid >=15:
-        if elapsed_time() > 7: 
-                print('cant do it')
-                return placeAllBlocks(brd,remainingBlocks)  
-    if elapsed_time() > 10:
+    if elapsed_time() > 20:
         print('cant do it')
         return placeAllBlocks(brd,remainingBlocks)
     if remainingBlocks == 0:
         return brd
-
     
     cb = "#"* wid + "##"
 
@@ -502,22 +495,19 @@ def antiClumpPlaceBlocks(brd,wid,ht,remainingBlocks,depth =0):
 
 
     bestToWorst = []
-    inc = 5
-    for i in range(brd.count("-")):
+    inc = 3
+    for i in range(inc):
         blk = findBestBlock(brd,wid,ht,impossibles)
-        if blk not in impossibles:
-            impossibles.append(blk)
-        if blk not in bestToWorst:
-            bestToWorst.append(blk)
+        impossibles.append(blk)
+        bestToWorst.append(blk)
 
-    #bestToWorst = bestToWorst[:inc]
+    bestToWorst = bestToWorst[:inc]
 
-    placed = brd    
+    placed = brd
     for ind in bestToWorst:
 
             blocksBeforePlacement = brd.count("#")
             placed = placeBlock(brd,ind,width,height, False,False,True)
-
             if not placed:
                 continue
             addedBlocks = placed.count("#") - blocksBeforePlacement
@@ -527,7 +517,6 @@ def antiClumpPlaceBlocks(brd,wid,ht,remainingBlocks,depth =0):
             display2d(placed,wid)
             res = antiClumpPlaceBlocks(placed,wid,ht,remainingBlocks-addedBlocks,depth+1)
             return res
-    return placed
     #return placeAllBlocks(placed,remainingBlocks)
 
 
@@ -738,31 +727,24 @@ def getAllLocs(brd,wid):
     return locationsToFill
 
 def bF(brd,wid,usedWords = []):
-    
     brd = brd.lower()
     print()
     display2d(brd,wid)
 
     wordLocations = getAllLocs(brd,wid)
-    newWordLocs = []
+
     for ind , loc in enumerate(wordLocations):
         if loc[1].count("-") ==0:
             if not loc[1] in lengthToWords[len(loc[1])]:
                
                 return 0
-            #wordLocations.remove(loc)
-        else:
-            newWordLocs.append(loc)
+            wordLocations.remove(loc)
         if not loc[1] in specsToPoss or len(specsToPoss[loc[1]]) == 0:
             return 0
-    wordLocations = newWordLocs
+
     if brd.count("-") == 0:
         return brd
 
-
-    if elapsed_time() > 28:
-        print('placing hori')
-        return placeHorizontally(brd,wid)
     locToBeFilled = 0
     highestLength = 999999999999
     candidates = set()
@@ -829,44 +811,19 @@ def main():
 
     inputtedBlocks = board.count("#")
     totalBlocks = numBlocks-inputtedBlocks
-    placed = None
-    if width >=15:
-        placed = placeAllBlocks(board,totalBlocks)
-    else:
-        placed = antiClumpPlaceBlocks(board,width,height,totalBlocks)
-    if not placed or placed.count("#") != numBlocks:
-        print("anticlump original didnt work")
-        global startOfOther
-        startOfOther= time.time()
-        inputtedBlocks = placed.count("#")
-        totalBlocks = numBlocks-inputtedBlocks
-        placed = otherClumpPlace(board,width,height,totalBlocks)
-    if not placed or placed.count("#") != numBlocks:
-        print("anticlump secondary didnt work")
-        startOfOther= time.time()
-        inputtedBlocks = placed.count("#")
-        totalBlocks = numBlocks-inputtedBlocks
-        placed = placeAllBlocks(placed,totalBlocks)
+    placed = antiClumpPlaceBlocks(board,width,height,totalBlocks)
     #placed = antiClumpPlaceBlocks(board,width,height,totalBlocks)
     display2d(placed,width)
-    print()
     #placed= "SUcHLEgOAFrOCArP"
-    global placedWordsElapse
-    placedWordsElapse = time.time()
-    if width >=15:
-        placedWords = placeHorizontally(placed,width)
-    else:
-        placedWords = bF(placed.lower(),width)
-    if placedWords ==0:
-
-        placedWords = placeHorizontally(placed,width)
+    placedWords = bF(placed.lower(),width)
     print()
     display2d(placedWords.lower(),width)  
-    print('elapsed time: ' + str(elapsed_time()))
+    # print('elapsed time: ' + str(elapsed_time()))
 
 
 if __name__ == '__main__': 
     
+
     main()
 
 # Anmol Karan, pd 3, 2025
