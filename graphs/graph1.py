@@ -3,14 +3,14 @@ import math
 
 
 def grfParse(lstArgs):
-    setOfVertices = set()
-
+    
     for arg in lstArgs:
 
 
         finArg = arg
-        rwd = 12
+        
         if arg[0].upper() == "G":
+            rwd = 12
             graphStruct = {}
 
             numVertices = 0
@@ -86,7 +86,9 @@ def grfParse(lstArgs):
 
 
         if arg[0].upper() == "V":
-            if arg[-1] == "B":
+            setOfVertices = set()
+            if "B" in arg:
+                
                 slc = ""
 
                 width = graphStruct[0][1]
@@ -157,40 +159,331 @@ def grfParse(lstArgs):
                         if sections[1] == None:
                             setOfVertices = setOfVertices.union(set(range(sections[0],-1,sections[2])))
                         setOfVertices = setOfVertices.union(set(range(sections[0],sections[1],sections[2])))
-    for v in setOfVertices:
-        vertex = graphStruct[v]
 
-        nbrs = vertex[0]
-        for otherVertex in graphStruct:
-            if otherVertex in setOfVertices:
-                continue
-            otherVertexOrigNeighbors = graphStruct[otherVertex][0]
+                st = setOfVertices
 
-            if v+1 not in otherVertexOrigNeighbors and (v+1) %width != 0 and otherVertex == v+1:
-                graphStruct[otherVertex][0].add(v)
-                graphStruct[v][0].add(otherVertex) 
+                for v in st:
+                    vertex = graphStruct[v]
 
-            if v-1 not in otherVertexOrigNeighbors and v %width != 0 and otherVertex == v-1:
-                graphStruct[otherVertex][0].add(v)
-                graphStruct[v][0].add(otherVertex) 
+                    nbrs = vertex[0]
+                    for otherVertex in graphStruct:
+                        if otherVertex in st:
+                            continue
+                        otherVertexOrigNeighbors = graphStruct[otherVertex][0].copy()
+                        if v not in otherVertexOrigNeighbors and (v+1) %width != 0 and otherVertex == v+1:
+                            graphStruct[otherVertex][0].add(v)
+                            graphStruct[v][0].add(otherVertex) 
 
-            if v+width not in otherVertexOrigNeighbors and not v+width >= len(otherVertexOrigNeighbors) and otherVertex == v+width:
-                graphStruct[otherVertex][0].add(v)
-                graphStruct[v][0].add(otherVertex) 
-            
-            if v+width not in otherVertexOrigNeighbors and not v-width < 0 and otherVertex == v-width :
-                graphStruct[otherVertex][0].add(v)    
-                graphStruct[v][0].add(otherVertex)                
+                        if v not in otherVertexOrigNeighbors and v %width != 0 and otherVertex == v-1:
+                            graphStruct[otherVertex][0].add(v)
+                            
+                            graphStruct[v][0].add(otherVertex) 
+
+                        if v not in otherVertexOrigNeighbors and not v+width >= len(graphStruct) and otherVertex == v+width:
+                            graphStruct[otherVertex][0].add(v)
+                            graphStruct[v][0].add(otherVertex) 
                         
+                        if v not in otherVertexOrigNeighbors and not v-width < 0 and otherVertex == v-width :
+                            graphStruct[otherVertex][0].add(v)    
+                            graphStruct[v][0].add(otherVertex)                
+                            
 
 
 
-            if v in otherVertexOrigNeighbors:
+                        if v in otherVertexOrigNeighbors:
+                            
+                            graphStruct[otherVertex][0].remove(v)
+                            graphStruct[v][0].remove(otherVertex)
+
+            if "R" in arg:
+                reward = 0
+                rInd = finArg.rfind("R") + 1
+                if rInd >= len(arg) or finArg[rInd] not in "0123456789":
+                    reward = 12
+                    continue
+                r = finArg[rInd]
+                if rInd< len(finArg)-1:
+                    if finArg[rInd+1] in "0123456789":
+                        r +=finArg[rInd+1]
+                        if rInd+1 < len(finArg)-1:
+                            if finArg[rInd+2] in "0123456789":
+                                r +=finArg[rInd+2]
                 
-                graphStruct[otherVertex][0].remove(v)
-                graphStruct[v][0].remove(otherVertex)
 
+
+                reward = int(r)
+
+
+
+
+                slc = ""
+
+                width = graphStruct[0][1]
+                for i in range(1, len(arg)):
+                    if arg[i] in "0123456789-:,":
+
+
+                        slc+=arg[i]
+                    else:
+                        break
+                for splitted in slc.split(","):
+                    sections = splitted.split(":")
+
+    
+                    if len(sections) ==1:
+                        for i, v in enumerate(sections):
+                            v = int(v)
+                            if v <0:
+                                v = v*-1
+                                
+                                v = len(graphStruct)-v
+                            sections[i] = v
+                        ind = int(sections[0])
+                        setOfVertices = setOfVertices.union({ind})
+
+                    if len(sections) == 2:
+                        if not sections[1]:
+                            sections[1] = len(graphStruct)
+                        
+                        if not sections[0]:
+                            sections[0] = 0
+                        for i, v in enumerate(sections):
+                            v = int(v)
+                            if v <0:
+                                v = v*-1
+                                
+                                v = len(graphStruct)-v
+                            sections[i] = v
+
+                        setOfVertices = setOfVertices.union(set(range(sections[0],sections[1])))
+
+                    if len(sections) == 3:
+                        section1IsNone = False
+                        if not sections[1]:
+                            if sections[2] and int(sections[2]) <0:
+                                sections[1] = -1
+                                section1IsNone = True
+                            else:
+                                sections[1] = len(graphStruct)
+                        if not sections[0]:
+                            if sections[2] and int(sections[2]) <0:
+                                sections[0] = len(graphStruct)-1
+                            else:
+                                sections[0] = 0
+
+                        for i, v in enumerate(sections[:2]):
+                            v = int(v)
+                            if v <0  and not (i == 1 and section1IsNone):
+                                v = v*-1
+                                
+                                v = len(graphStruct)-v
+                            sections[i] = v
+                        if not sections[2]:
+                            if int(sections[0]) > int(sections[1]):
+
+                                sections[2] = -1
+                            else:
+                                sections[2] = 1
+                        sections[2] = int(sections[2])
+                        if sections[1] == None:
+                            setOfVertices = setOfVertices.union(set(range(sections[0],-1,sections[2])))
+                        setOfVertices = setOfVertices.union(set(range(sections[0],sections[1],sections[2])))
+
+                st = setOfVertices
+
+                for v in setOfVertices:
+                    graphStruct[v][2] = reward
+
+
+
+        if arg[0].upper() == "E":
+            if arg[1] not in "!+*~@":
+                finArg = finArg[0] + "~" + finArg[1:]
+            setOfVertices = []
+            slc = ""
+
+            width = graphStruct[0][1]
+            endOfVslc1 = 0
+            for i in range(2, len(finArg)):
+                if finArg[i] in "0123456789-:,":
+                    slc+=finArg[i]
+                else:
+                    endOfVslc1 = i
+                    break
+            for splitted in slc.split(","): #making set of vertices for vslc 1
+
+
+
+
+                sections = splitted.split(":")
+
+
+                if len(sections) ==1:
+                    for i, v in enumerate(sections):
+                        v = int(v)
+                        if v <0:
+                            v = v*-1
+                            
+                            v = len(graphStruct)-v
+                        sections[i] = v
+                    ind = int(sections[0])
+                    setOfVertices = setOfVertices + [ind]
+
+                if len(sections) == 2:
+                    if not sections[1]:
+                        sections[1] = len(graphStruct)
+                    
+                    if not sections[0]:
+                        sections[0] = 0
+                    for i, v in enumerate(sections):
+                        v = int(v)
+                        if v <0:
+                            v = v*-1
+                            
+                            v = len(graphStruct)-v
+                        sections[i] = v
+
+                    setOfVertices = setOfVertices + list(range(sections[0],sections[1]))
+
+                if len(sections) == 3:
+                    section1IsNone = False
+                    if not sections[1]:
+                        if sections[2] and int(sections[2]) <0:
+                            sections[1] = -1
+                            section1IsNone = True
+                        else:
+                            sections[1] = len(graphStruct)
+                    if not sections[0]:
+                        if sections[2] and int(sections[2]) <0:
+                            sections[0] = len(graphStruct)-1
+                        else:
+                            sections[0] = 0
+
+                    for i, v in enumerate(sections[:2]):
+                        v = int(v)
+                        if v <0  and not (i == 1 and section1IsNone):
+                            v = v*-1
+                            
+                            v = len(graphStruct)-v
+                        sections[i] = v
+                    if not sections[2]:
+                        if int(sections[0]) > int(sections[1]):
+
+                            sections[2] = -1
+                        else:
+                            sections[2] = 1
+                    sections[2] = int(sections[2])
+                    if sections[1] == None:
+                        setOfVertices = setOfVertices + list((range(sections[0],-1,sections[2])))
+                    setOfVertices = setOfVertices+ list(range(sections[0],sections[1],sections[2]))
+                
+            allEdges = []
+            if finArg[endOfVslc1] in "~=": #form 1
+                slc2 = ""
+                for i in range(endOfVslc1+1, len(finArg)):
+                    if finArg[i] in "0123456789-:,":
+                        slc2+=finArg[i]
+                    else:
+                        break
+                
+                setOfVertices2 = []
+                for splitted2 in slc2.split(","): #making set of vertices (setOfVertices2 )for vslc 2
+
+
+
+                    sections2 = splitted2.split(":")
+
+
+                    if len(sections2) ==1:
+                        for i, v in enumerate(sections2):
+                            v = int(v)
+                            if v <0:
+                                v = v*-1
+                                
+                                v = len(graphStruct)-v
+                            sections2[i] = v
+                        ind = int(sections2[0])
+                        setOfVertices2 = setOfVertices2 + [ind]
+
+                    if len(sections2) == 2:
+                        if not sections2[1]:
+                            sections2[1] = len(graphStruct)
+                        
+                        if not sections2[0]:
+                            sections2[0] = 0
+                        for i, v in enumerate(sections2):
+                            v = int(v)
+                            if v <0:
+                                v = v*-1
+                                
+                                v = len(graphStruct)-v
+                            sections2[i] = v
+
+                        setOfVertices2 = setOfVertices2 + list(range(sections2[0],sections2[1]))
+
+                    if len(sections2) == 3:
+                        section1IsNone = False
+                        if not sections2[1]:
+                            if sections2[2] and int(sections2[2]) <0:
+                                sections2[1] = -1
+                                section1IsNone = True
+                            else:
+                                sections2[1] = len(graphStruct)
+                        if not sections2[0]:
+                            if sections2[2] and int(sections2[2]) <0:
+                                sections2[0] = len(graphStruct)-1
+                            else:
+                                sections2[0] = 0
+
+                        for i, v in enumerate(sections2[:2]):
+                            v = int(v)
+                            if v <0  and not (i == 1 and section1IsNone):
+                                v = v*-1
+                                
+                                v = len(graphStruct)-v
+                            sections2[i] = v
+                        if not sections2[2]:
+                            if int(sections2[0]) > int(sections2[1]):
+
+                                sections2[2] = -1
+                            else:
+                                sections2[2] = 1
+                        sections2[2] = int(sections2[2])
+                        if sections2[1] == None:
+                            setOfVertices2 = setOfVertices2 + list(range(sections2[0],-1,sections2[2]))
+                        setOfVertices2 = setOfVertices2 + list((range(sections2[0],sections2[1],sections2[2])))
+                
+                allEdges = list(zip(setOfVertices,setOfVertices2))
             
+
+            res = []
+            [res.append(x) for x in allEdges if x not in res]
+
+            allEdges = res
+            #if finArg[endOfVslc1] in "NSEW": # second form
+            if finArg[1] == "~":
+                if "=" in finArg[2:]:
+                    for edge in allEdges:
+                        first = edge[0]
+                        second = edge[1]
+                        if second not in graphStruct[first][0]:
+                            graphStruct[first][0].add(second)
+                        else:
+                            graphStruct[first][0].remove(second)
+                        if first not in graphStruct[second][0]:
+                            graphStruct[second][0].add(first)
+                        else:
+                            graphStruct[second][0].remove(first)
+                elif "~" in finArg[2:]:
+                    for edge in allEdges:
+                        first = edge[0]
+                        second = edge[1]
+                        if second not in graphStruct[first][0]:
+                            graphStruct[first][0].add(second)
+                        else:
+                            graphStruct[first][0].remove(second)
+                                        
+
 
     return graphStruct
 
