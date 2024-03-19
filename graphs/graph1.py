@@ -582,7 +582,12 @@ def grfParse(lstArgs):
                         else:
                             graphStruct[first][0].remove(second)
                 
-                print(allEdges)
+                if "=" in finArg[2:]:
+                    
+                    v = []
+                    r = [sorted(u) for u in allEdges]
+                    [v.append((x[1],x[0])) for x in r if x not in v]
+                    allEdges += v
                 for e in allEdges:
                     if rwd !=-1:
                         edgeProps[tuple(e)] = {'rwd':rwd}
@@ -623,6 +628,13 @@ def grfParse(lstArgs):
                         # print(graphStruct[first],edge)
                         if second not in graphStruct[first][0]:
                             graphStruct[first][0].add(second)
+                                
+                if "=" in finArg[2:]:
+                    
+                    v = []
+                    r = [sorted(u) for u in allEdges]
+                    [v.append((x[1],x[0])) for x in r if x not in v]
+                    allEdges += v
                 for e in allEdges:
                     if rwd !=-1 and tuple(e) not in extantEdges:
                         edgeProps[tuple(e)] = {'rwd':rwd}
@@ -659,6 +671,18 @@ def grfParse(lstArgs):
                         if second not in graphStruct[first][0]:
                             graphStruct[first][0].add(second)
                             # print(graphStruct[first],edge)
+                # everyEdge = []
+                # for i in graphStruct:
+                #     for ii in graphStruct[i][0]:
+                #         everyEdge.append((i,ii))
+                # everyEdge.extend(allEdges)
+                                
+                if "=" in finArg[2:]:
+                    
+                    v = []
+                    r = [sorted(u) for u in allEdges]
+                    [v.append((x[1],x[0])) for x in r if x not in v]
+                    allEdges += v
                 for e in allEdges:
                     if rwd !=-1:
                         edgeProps[tuple(e)] = {'rwd':rwd}
@@ -688,6 +712,7 @@ def grfParse(lstArgs):
                         if first not in graphStruct[second][0]:
                             pass
                         else:
+
                             graphStruct[second][0].remove(first)
                 elif "~" in finArg[2:]:
                     for edge in allEdges:
@@ -705,7 +730,7 @@ def grfParse(lstArgs):
                     for ii in graphStruct[i][0]:
                         extantEdges.add((i,ii))
                 for e in allEdges:
-                    if rwd !=-1:
+                    if rwd !=-1 and tuple(e) in extantEdges:
                         edgeProps[tuple(e)] = {'rwd':rwd}
                     if allNonDefRwds:
                         nonDefaultRwds.add(tuple(e))      
@@ -745,7 +770,7 @@ def grfVProps(graph,v):
 def grfEProps(graph,v1,v2):
     edgeProps = graph['edgeProps']
 
-    if (v1,v2) in edgeProps:
+    if (v1,v2) in edgeProps  and v2 in graph[v1][0]:
         return edgeProps[(v1,v2)]
     else:
         return {}
@@ -862,7 +887,7 @@ def grfStrProps(graph):
     width = graph[0][1]
     for key in graph:
         for otherKey in graph:
-            if (key,otherKey) in graph['edgeProps'] :#and abs(otherKey-key) != width and abs(otherKey-key)!=1:
+            if (key,otherKey) in graph['edgeProps'] and otherKey in graph[key][0] :#and abs(otherKey-key) != width and abs(otherKey-key)!=1:
                 fin = fin + "\n" + str((key,otherKey)) + ":rwd:" + str(graph['edgeProps'][(key,otherKey)]['rwd'])
     return fin
 
@@ -901,7 +926,7 @@ def main():
 
 
     print(grfStrProps(graph))
-    print(grfEProps(graph,20,5))
+    print(grfEProps(graph,0,8))
     print("final graph: ",graph)
 
 if __name__ == '__main__': main()
