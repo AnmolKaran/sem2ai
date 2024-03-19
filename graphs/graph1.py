@@ -585,7 +585,7 @@ def grfParse(lstArgs):
                 if "=" in finArg[2:]:
                     
                     v = []
-                    r = [sorted(u) for u in allEdges]
+                    r = [u for u in allEdges]
                     [v.append((x[1],x[0])) for x in r if x not in v]
                     allEdges += v
                 for e in allEdges:
@@ -595,7 +595,7 @@ def grfParse(lstArgs):
                         nonDefaultRwds.add(tuple(e))
                                         
                 
-            elif finArg[1] == "+":  #still need to apply properties to new edges, not existing ones
+            elif finArg[1] == "+": 
                 extantEdges = set()
                 for i in graphStruct:
                     for ii in graphStruct[i][0]:
@@ -632,7 +632,7 @@ def grfParse(lstArgs):
                 if "=" in finArg[2:]:
                     
                     v = []
-                    r = [sorted(u) for u in allEdges]
+                    r = [u for u in allEdges]
                     [v.append((x[1],x[0])) for x in r if x not in v]
                     allEdges += v
                 for e in allEdges:
@@ -680,7 +680,7 @@ def grfParse(lstArgs):
                 if "=" in finArg[2:]:
                     
                     v = []
-                    r = [sorted(u) for u in allEdges]
+                    r = [u for u in allEdges]
                     [v.append((x[1],x[0])) for x in r if x not in v]
                     allEdges += v
                 for e in allEdges:
@@ -729,6 +729,12 @@ def grfParse(lstArgs):
                 for i in graphStruct:
                     for ii in graphStruct[i][0]:
                         extantEdges.add((i,ii))
+                if "=" in finArg[2:]:
+                    
+                    v = []
+                    r = [u for u in allEdges]
+                    [v.append((x[1],x[0])) for x in r if x not in v]
+                    allEdges += v
                 for e in allEdges:
                     if rwd !=-1 and tuple(e) in extantEdges:
                         edgeProps[tuple(e)] = {'rwd':rwd}
