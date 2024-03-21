@@ -97,6 +97,7 @@ def grfParse(lstArgs):
 
 
         if arg[0].upper() == "V":
+          
             setOfVertices = set()
             if "B" in arg:
                 
@@ -173,22 +174,29 @@ def grfParse(lstArgs):
 
                 st = setOfVertices
                 #print("\n\n")
-                
                 for v in st:
                     vertex = graphStruct[v]
                     mustRemove = set()
 
+
                     nbrs = vertex[0].copy()
+                    
                     #print(graphStruct[v][0])
                     for otherVertex in graphStruct:
-                        if otherVertex in st:
-                            continue
+                        # if otherVertex in st:
+                            
+                        #     continue
                         otherVertexOrigNeighbors = graphStruct[otherVertex][0].copy()
+                 
                         #print(otherVertex,v)
                         if v not in otherVertexOrigNeighbors and (v+1) %width != 0 and otherVertex == v+1:
+
+                            
                             graphStruct[otherVertex][0].add(v)
                             if otherVertex in graphStruct[v][0]:
                                 graphStruct[v][0].remove(otherVertex)
+                                if (v,otherVertex) in edgeProps:
+                                    del edgeProps[(v,otherVertex)]
                             else:
                                 graphStruct[v][0].add(otherVertex) 
 
@@ -196,40 +204,61 @@ def grfParse(lstArgs):
                             graphStruct[otherVertex][0].add(v)
                             
                             if otherVertex in graphStruct[v][0]:
+                                if (v,otherVertex) in edgeProps:
+                                    del edgeProps[(v,otherVertex)]
                                 graphStruct[v][0].remove(otherVertex)
                             else:
                                 graphStruct[v][0].add(otherVertex) 
 
                         if v not in otherVertexOrigNeighbors and not v+width >= len(graphStruct) and otherVertex == v+width:
                             graphStruct[otherVertex][0].add(v)
-          
+                            
                             if otherVertex in graphStruct[v][0]:
+                                if (v,otherVertex) in edgeProps:
+                                    del edgeProps[(v,otherVertex)]
                                 graphStruct[v][0].remove(otherVertex)
                             else:
                                 graphStruct[v][0].add(otherVertex) 
                         
                         if v not in otherVertexOrigNeighbors and not v-width < 0 and otherVertex == v-width :
                             graphStruct[otherVertex][0].add(v)
+                            
                             if otherVertex in graphStruct[v][0]:
+                                if (v,otherVertex) in edgeProps:
+                                    del edgeProps[(v,otherVertex)]
                                 graphStruct[v][0].remove(otherVertex)
                             else:
                                 graphStruct[v][0].add(otherVertex)   
                             
-
-
-
+                        
+                        
                         if v in otherVertexOrigNeighbors:
                             
+                            
                             graphStruct[otherVertex][0].remove(v)
-                            if otherVertex not in graphStruct[v][0]:
+                            if otherVertex not in graphStruct[v][0] and ((not v-width < 0 and otherVertex == v-width) or (not v+width >= len(graphStruct) and otherVertex == v+width )or ( v %width != 0 and otherVertex == v-1) or ((v+1) %width != 0 and otherVertex == v+1)):
                                 graphStruct[v][0].add(otherVertex)
-                            else:
+                            elif otherVertex in graphStruct[v][0]:
+                                if (v,otherVertex) in edgeProps:
+                                    del edgeProps[(v,otherVertex)]
                                 graphStruct[v][0].remove(otherVertex)
                     #print(graphStruct[v][0],nbrs)
-                    for i in graphStruct[v][0]:
-                        if i in nbrs:
-                            mustRemove.add(i)
+                    # for i in graphStruct[v][0]:
+                    #     if i in nbrs:
+                    #         mustRemove.add(i)
+
+                    for i in nbrs:
+                        if i in graphStruct[v][0]:
+                           # mustRemove.add(i)
+                            graphStruct[v][0].remove(i)
+                            if (v,i) in edgeProps:
+                                del edgeProps[(v,i)]
+                            if v in graphStruct[i][0]:
+                                if (i,v) in edgeProps:
+                                    del edgeProps[(i,v)]
+                                graphStruct[i][0].remove(v)
                     #graphStruct[v][0] -=mustRemove
+                   
             allNonDefRwds = False
             if "R" in arg:
                 reward = 0
@@ -331,8 +360,6 @@ def grfParse(lstArgs):
                     graphStruct[v][2] = reward
                     if allNonDefRwds:
                         nonDefaultRwds.add(v)
-
-
 
         if arg[0].upper() == "E":
             if arg[1] not in "!+*~@%_":
@@ -628,13 +655,13 @@ def grfParse(lstArgs):
                         # print(graphStruct[first],edge)
                         if second not in graphStruct[first][0]:
                             graphStruct[first][0].add(second)
-                                
                 if "=" in finArg[2:]:
                     
                     v = []
                     r = [u for u in allEdges]
                     [v.append((x[1],x[0])) for x in r if x not in v]
                     allEdges += v
+                
                 for e in allEdges:
                     if rwd !=-1 and tuple(e) not in extantEdges:
                         edgeProps[tuple(e)] = {'rwd':rwd}
@@ -735,14 +762,14 @@ def grfParse(lstArgs):
                     r = [u for u in allEdges]
                     [v.append((x[1],x[0])) for x in r if x not in v]
                     allEdges += v
+
                 for e in allEdges:
                     if rwd !=-1 and tuple(e) in extantEdges:
                         edgeProps[tuple(e)] = {'rwd':rwd}
                     if allNonDefRwds:
-                        nonDefaultRwds.add(tuple(e))      
+                        nonDefaultRwds.add(tuple(e))   
 
-                
-
+   
     graphStruct['grfRwd'] = grfRwd
     graphStruct['edgeProps'] = edgeProps
     graphStruct['nonDefaultRwds'] = nonDefaultRwds
@@ -799,13 +826,13 @@ def grfStrEdges(graph):
         symbol = "."
         for nbr in nbrs:
             
-            if nbr == i-wid:
+            if nbr == i-wid and nbr%wid == i %wid:
                 currDirs.add("up")
-            elif nbr == i +wid:
+            elif nbr == i +wid and nbr%wid == i %wid:
                 currDirs.add("down")
-            elif nbr == i+1:
+            elif nbr == i+1 and nbr //wid == i//wid:
                 currDirs.add("right")
-            elif nbr == i-1:
+            elif nbr == i-1 and nbr //wid == i//wid:
                 currDirs.add("left")
             else:
                 jumps.append((i,nbr))
@@ -932,7 +959,10 @@ def main():
 
 
     print(grfStrProps(graph))
-    print(grfEProps(graph,0,8))
+    # print()
+    # print(grfStrEdges(graph))
+    # print()
+
     print("final graph: ",graph)
 
 if __name__ == '__main__': main()
