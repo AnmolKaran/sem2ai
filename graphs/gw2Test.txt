@@ -2,6 +2,8 @@ import sys;  args = sys.argv[1:]
 import math
 
 
+
+
 def grfParse(lstArgs):
     edgeProps = {}
     grfRwd = 0
@@ -94,7 +96,6 @@ def grfParse(lstArgs):
                 for i,ch in enumerate (theRange):
                     
                     graphStruct[int(i)] = [set(),-1,rwd]
-
 
         if arg[0].upper() == "V":
           
@@ -361,9 +362,12 @@ def grfParse(lstArgs):
                     if allNonDefRwds:
                         nonDefaultRwds.add(v)
 
+
         if arg[0].upper() == "E":
-            if arg[1] not in "!+*~@%_":
-                finArg = finArg[0] + "~" + finArg[1:]
+            if arg[1] == "+" and arg[2] == "~":
+                finArg = arg[0] + "%" + arg[3:]
+            if arg[1] not in "+~":
+                finArg = finArg[0] + "_" + finArg[1:]
             setOfVertices = []
             slc = ""
 
@@ -546,13 +550,7 @@ def grfParse(lstArgs):
                                 allEdges.append((ver,otherV))
 
 
-            # print(allEdges)
-
-                            
-
-
-                
-
+     
             res = []
             [res.append(x) for x in allEdges if x not in res]
 
@@ -571,8 +569,117 @@ def grfParse(lstArgs):
                 rwd = -1
 
 
-            #if finArg[endOfVslc1] in "NSEW": # second form
+            if finArg[1] == "+":
+
+                #do stuff
+
+                if "=" in finArg[2:]:
+                    
+                    v = []
+                    r = [sorted(u) for u in allEdges]
+                    [v.append(x) for x in r if x not in v]
+                    allEdges =v
+                    for edge in allEdges:
+                        first = edge[0]
+                        second = edge[1]
+                        if first == second:
+                            if first not in graphStruct[first][0]:
+                                graphStruct[first][0].add(first)
+                           
+                            continue
+                  
+                        if second not in graphStruct[first][0]:
+                 
+                            graphStruct[first][0].add(second)
+             
+                       
+                        if first not in graphStruct[second][0]:
+                            graphStruct[second][0].add(first)
+                elif "~" in finArg[2:]:
+                    for edge in allEdges:
+                        first = edge[0]
+                        second = edge[1]
+                        # print(graphStruct[first],edge)
+                        if second not in graphStruct[first][0]:
+                            graphStruct[first][0].add(second)
+                            # print(graphStruct[first],edge)
+                        
+                
+
+                if "=" in finArg[2:]:
+                    
+                    v = []
+                    r = [u for u in allEdges]
+                    [v.append((x[1],x[0])) for x in r if x not in v]
+                    allEdges += v
+
+                for e in allEdges:
+                    if rwd !=-1:
+                        edgeProps[tuple(e)] = {'rwd':rwd}
+                    if allNonDefRwds:
+                        nonDefaultRwds.add(tuple(e))
+
+
             if finArg[1] == "~":
+                if "=" in finArg[2:]:
+                    
+                    v = []
+                    r = [sorted(u) for u in allEdges]
+                    [v.append(x) for x in r if x not in v]
+                    allEdges =v
+                    for edge in allEdges:
+                        first = edge[0]
+                        second = edge[1]
+                        if first == second:
+                            if first not in graphStruct[first][0]:
+                                #graphStruct[first][0].add(first)
+                                pass
+                            else:
+                                graphStruct[first][0].remove(first)
+                            continue
+                  
+                        if second not in graphStruct[first][0]:
+                 
+                            #graphStruct[first][0].add(second)
+                            pass
+             
+                        else:
+                            graphStruct[first][0].remove(second)
+                        if first not in graphStruct[second][0]:
+                            #graphStruct[second][0].add(first)
+                            pass
+                        else:
+                            graphStruct[second][0].remove(first)
+                elif "~" in finArg[2:]:
+                    for edge in allEdges:
+                        first = edge[0]
+                        second = edge[1]
+                        # print(graphStruct[first],edge)
+                        if second not in graphStruct[first][0]:
+                            #graphStruct[first][0].add(second)
+                            pass
+                            # print(graphStruct[first],edge)
+                        else:
+                            graphStruct[first][0].remove(second)
+                
+            if finArg[1] == "%": #same as +~
+                extantEdges = set()
+                for i in graphStruct:
+                    for ii in graphStruct[i][0]:
+                        extantEdges.add((i,ii))
+                if "=" in finArg[2:]:
+                    
+                    v = []
+                    r = [u for u in allEdges]
+                    [v.append((x[1],x[0])) for x in r if x not in v]
+                    allEdges += v
+
+                for e in allEdges:
+                    if rwd !=-1 and tuple(e) in extantEdges:
+                        edgeProps[tuple(e)] = {'rwd':rwd}
+                    if allNonDefRwds:
+                        nonDefaultRwds.add(tuple(e))   
+            if finArg[1] == "_":  #toggle
                 if "=" in finArg[2:]:
                     
                     v = []
@@ -622,193 +729,14 @@ def grfParse(lstArgs):
                         edgeProps[tuple(e)] = {'rwd':rwd}
                     if allNonDefRwds:
                         nonDefaultRwds.add(tuple(e))
-                                        
-                
-            elif finArg[1] == "+": 
-                extantEdges = set()
-                for i in graphStruct:
-                    for ii in graphStruct[i][0]:
-                        extantEdges.add((i,ii))
-                if "=" in finArg[2:]:
-                    v = []
-                    r = [sorted(u) for u in allEdges]
-                    [v.append(x) for x in r if x not in v]
-                    allEdges = v
-                    
-                    for edge in allEdges:
-                        first = edge[0]
-                        second = edge[1]
-                        if first == second:
-                            if first not in graphStruct[first][0]:
-                                graphStruct[first][0].add(first)
-
-                            continue
-                        
-                        if second not in graphStruct[first][0]:
-                            graphStruct[first][0].add(second)
-
-                        if first not in graphStruct[second][0]:
-                            graphStruct[second][0].add(first)
-
-                elif "~" in finArg[2:]:
-                    for edge in allEdges:
-                        first = edge[0]
-                        second = edge[1]
-                        # print(graphStruct[first],edge)
-                        if second not in graphStruct[first][0]:
-                            graphStruct[first][0].add(second)
-                if "=" in finArg[2:]:
-                    
-                    v = []
-                    r = [u for u in allEdges]
-                    [v.append((x[1],x[0])) for x in r if x not in v]
-                    allEdges += v
-                
-                for e in allEdges:
-                    if rwd !=-1 and tuple(e) not in extantEdges:
-                        edgeProps[tuple(e)] = {'rwd':rwd}
-                            # print(graphStruct[first],edge)
-                    if allNonDefRwds:
-                        nonDefaultRwds.add(tuple(e))
-            elif finArg[1] == "*" or finArg[1] == "_": #stillneed to apply properties to all edges
-                if "=" in finArg[2:]:
-                    v = []
-                    r = [sorted(u) for u in allEdges]
-                    [v.append(x) for x in r if x not in v]
-                    allEdges = v
-                    
-                    for edge in allEdges:
-                        first = edge[0]
-                        second = edge[1]
-                        if first == second:
-                            if first not in graphStruct[first][0]:
-                                graphStruct[first][0].add(first)
-
-                            continue
-                        
-                        if second not in graphStruct[first][0]:
-                            graphStruct[first][0].add(second)
-
-                        if first not in graphStruct[second][0]:
-                            graphStruct[second][0].add(first)
-
-                elif "~" in finArg[2:]:
-                    for edge in allEdges:
-                        first = edge[0]
-                        second = edge[1]
-                        # print(graphStruct[first],edge)
-                        if second not in graphStruct[first][0]:
-                            graphStruct[first][0].add(second)
-                            # print(graphStruct[first],edge)
-                # everyEdge = []
-                # for i in graphStruct:
-                #     for ii in graphStruct[i][0]:
-                #         everyEdge.append((i,ii))
-                # everyEdge.extend(allEdges)
-                                
-                if "=" in finArg[2:]:
-                    
-                    v = []
-                    r = [u for u in allEdges]
-                    [v.append((x[1],x[0])) for x in r if x not in v]
-                    allEdges += v
-                for e in allEdges:
-                    if rwd !=-1:
-                        edgeProps[tuple(e)] = {'rwd':rwd}
-                    if allNonDefRwds:
-                        nonDefaultRwds.add(tuple(e))
-            elif finArg[1] == "!" or finArg[1] == "%": #still need to apply properties to all edges
-                if "=" in finArg[2:]:
-                    v = []
-                    r = [sorted(u) for u in allEdges]
-                    [v.append(x) for x in r if x not in v]
-                    allEdges = v
-                    
-                    for edge in allEdges:
-                        first = edge[0]
-                        second = edge[1]
-                        if first == second:
-                            if first not in graphStruct[first][0]:
-                                pass
-                            else:
-                                graphStruct[first][0].remove(first)
-                            continue
-                        
-                        if second not in graphStruct[first][0]:
-                            pass
-                        else:
-                            graphStruct[first][0].remove(second)
-                        if first not in graphStruct[second][0]:
-                            pass
-                        else:
-
-                            graphStruct[second][0].remove(first)
-                elif "~" in finArg[2:]:
-                    for edge in allEdges:
-                        first = edge[0]
-                        second = edge[1]
-                        # print(graphStruct[first],edge)
-                        if second not in graphStruct[first][0]:
-                            pass
-                            # print(graphStruct[first],edge)
-                        else:
-                            graphStruct[first][0].remove(second)
-            elif finArg[1] == "@":
-                extantEdges = set()
-                for i in graphStruct:
-                    for ii in graphStruct[i][0]:
-                        extantEdges.add((i,ii))
-                if "=" in finArg[2:]:
-                    
-                    v = []
-                    r = [u for u in allEdges]
-                    [v.append((x[1],x[0])) for x in r if x not in v]
-                    allEdges += v
-
-                for e in allEdges:
-                    if rwd !=-1 and tuple(e) in extantEdges:
-                        edgeProps[tuple(e)] = {'rwd':rwd}
-                    if allNonDefRwds:
-                        nonDefaultRwds.add(tuple(e))   
-        print(graphStruct[12],finArg)
-   
+                            
     graphStruct['grfRwd'] = grfRwd
     graphStruct['edgeProps'] = edgeProps
     graphStruct['nonDefaultRwds'] = nonDefaultRwds
     
     return graphStruct
+                
 
-
-def grfSize(graph):
-    return len(graph)-3
-
-
-def grfNbrs(graph,v):
-    return graph[v][0]
-
-def grfGProps(graph):
-    rwd = graph['grfRwd']
-    if graph[0][1] == -1:
-        prop = {'rwd':rwd}
-    else:
-        prop = {'rwd':rwd,'width':graph[0][1]}
-
-
-    return prop
-
-def grfVProps(graph,v):
-    rwd = graph['grfRwd']
-    if rwd != graph[v][2] or v in graph['nonDefaultRwds']:
-        return {'rwd':graph[v][2]}
-    return {}
-
-def grfEProps(graph,v1,v2):
-    edgeProps = graph['edgeProps']
-
-    if (v1,v2) in edgeProps  and v2 in graph[v1][0]:
-        return edgeProps[(v1,v2)]
-    else:
-        return {}
 
 def grfStrEdges(graph):
     finStr = ""
@@ -901,6 +829,22 @@ def grfStrEdges(graph):
         
 
 
+    
+
+def display2d(pzl,wid):
+   startIndeces = [q for q in range(0,len(pzl),wid) ]
+   listed = []
+   for q in startIndeces:
+       listPuzzle = list(pzl)
+       theThing  = listPuzzle[q: q+wid]
+       listed.append(''.join(theThing))
+  
+
+
+   for i in listed:
+        print (i)
+
+
 
 
 
@@ -927,45 +871,190 @@ def grfStrProps(graph):
     return fin
 
 
+def checkIfRwd(graph,width,loc1,loc2):  #checks if doing a move gets to a reward
+    if (loc1,loc2) in graph['nonDefaultRwds']:
+        return True
+    if loc2 in graph['nonDefaultRwds']:
+        return True
+    return False
 
 
 
-def display2d(pzl,wid):
-   startIndeces = [q for q in range(0,len(pzl),wid) ]
-   listed = []
-   for q in startIndeces:
-       listPuzzle = list(pzl)
-       theThing  = listPuzzle[q: q+wid]
-       listed.append(''.join(theThing))
-  
+def processDirs(lst):
+    allJumps = {i for i in lst if isinstance(i,tuple)}
+    currDirs = {i for i in lst if isinstance(i,str)}
+    symbol = "."
+
+    if {"up"}.issubset(currDirs):
+        symbol = "N"
+    if {"left"}.issubset(currDirs):
+        symbol = "W"
+    if {"right"}.issubset(currDirs):
+        symbol = "E"
+    if {"down"}.issubset(currDirs):
+        symbol = "S"
+
+    if {"up","down"}.issubset(currDirs):
+        symbol = "|"
+    if {"left","right"}.issubset(currDirs):
+        symbol = "-"
+    if {"up","right"}.issubset(currDirs):
+        symbol = "L"
+    if {"up","left"}.issubset(currDirs):
+        symbol = "J"
+    if {"down","left"}.issubset(currDirs):
+        symbol = "7"
+    if {"down","right"}.issubset(currDirs):
+        symbol = "r"
+
+    if {"up","right","down"}.issubset(currDirs):
+        symbol = ">"
+    if {"up","left","down"}.issubset(currDirs):
+        symbol = "<"
+    if {"right","left","down"}.issubset(currDirs):
+        symbol = "v"
+    if {"right","left","up"}.issubset(currDirs):
+        symbol = "^"
+    if {"right","left","up","down"}.issubset(currDirs):
+        symbol = "+"
+    return {'symbol': symbol,"jumps":allJumps}
+
+def shortestPathToRwd(graph,width,loc,prevLoc = None,steps = 0):
+    if steps > len(graph)-3:
+        return -1
+    if prevLoc == None:
+        if loc in graph['nonDefaultRwds']:
+            return "*"
+    else:
+        isRwd = checkIfRwd(graph,width,prevLoc,loc)
+
+        if isRwd: 
+
+            return steps
+
+    if prevLoc and prevLoc in graph[loc][0] and loc in graph[prevLoc][0] and (prevLoc,loc) in graph['nonDefaultRwds']:
+
+        
+        nbrs = graph[loc][0] 
+    else:
+        nbrs = graph[loc][0] - {prevLoc}
+        
+    stepsToNbr = []
+    if not nbrs:
+        return -1
+    for nbr in nbrs:      
+        path = shortestPathToRwd(graph,width,nbr,loc,steps+1)
+        if not path == -1:
+
+            stepsToNbr.append((path,nbr))
+    
 
 
-   for i in listed:
-        print (i)
+    if not stepsToNbr:   #not a possible location
+        return -1
+    elif prevLoc == None:   #the original index that was called
+        stepsToNbr = sorted(stepsToNbr, key=lambda x: x[0], reverse=False)
+        greatest_first_element = stepsToNbr[0][0]
+        stepsToNbr = [tup for tup in stepsToNbr if tup[0] == greatest_first_element]
+
+        allDirs = []
+        for i, v in enumerate(stepsToNbr):
+            nbr = v[1]
+            if nbr == loc-width:allDirs.append("up")
+            elif nbr == loc+width: allDirs.append("down")
+            elif nbr == loc+1 and loc%width != width-1: allDirs.append("right")
+            elif nbr == loc -1 and loc%width != 0: allDirs.append("left")
+            else:
+                allDirs.append((loc,nbr))
+        finThing = processDirs(allDirs)
+        return finThing
+    else:   #return the minimum steps from the current location
+        stepsToNbr = sorted(stepsToNbr, key=lambda x: x[0], reverse=False)
+        greatest_first_element = stepsToNbr[0][0]
+        stepsToNbr = [tup for tup in stepsToNbr if tup[0] == greatest_first_element]
+        return stepsToNbr[0][0]
+    
+
+
+
+
+    
+
+        
+
+
+    
+
+    #only go back if there is a rwd edge to the prev loc
+
+    
+
+    #return [(distance,dir)]
+
+
+def showAllRwds(graph,width):
+
+    finGraph = graph.copy()
+    del finGraph['edgeProps']
+    del finGraph['grfRwd']
+    del finGraph['nonDefaultRwds']
+    finStr = ""
+
+    jumps = set()
+
+    for vertex in finGraph:
+        dirs = shortestPathToRwd(graph,width,vertex)
+        if dirs == -1:
+            finStr +="."
+        elif dirs == "*":
+            finStr +=dirs
+        else:
+            finStr+= dirs['symbol']
+            jumps  = jumps.union(dirs['jumps'])
+    final = finStr + "\n"
+
+    jumpStr = ""
+    for jump in jumps:
+        jumpStr+= str(jump[0]) + ">"  + str(jump[1]) + ";"
+    
+    if jumpStr:
+        jumpStr = jumpStr[:-1]
+    
+    return final,jumpStr
 
 
 
 def main():
     graph = grfParse(args)
     wid = graph[0][1]
-    if wid !=0:
-        strEdg = grfStrEdges(graph)
-        rest = ""
-        if "Jumps" in strEdg:
-            rest = strEdg[strEdg.rfind("J"):]
-            strEdg = strEdg[:strEdg.rfind("J")]
+    # if wid !=0:
+    #     strEdg = grfStrEdges(graph)
+    #     rest = ""
+    #     if "Jumps" in strEdg:
+    #         rest = strEdg[strEdg.rfind("J"):]
+    #         strEdg = strEdg[:strEdg.rfind("J")]
             
-        display2d(strEdg,wid)
-        if rest:
-         print(rest)
+    #     display2d(strEdg,wid)
+    #     if rest:
+    #      print(rest)
 
 
-    print(grfStrProps(graph))
+    #print(grfStrProps(graph))
     # print()
     #print("grfStrEdges: " ,grfStrEdges(graph))
     # print()
 
-    print("final graph: ",graph)
+    #print("final graph: ",graph)
+
+    #print()
+
+    if wid !=0:
+        strEdg,jumpStr = showAllRwds(graph,wid)
+        rest = ""
+
+        print("Policy: ")           
+        display2d(strEdg,wid)
+        print(jumpStr)
 
 if __name__ == '__main__': main()
 # Anmol Karan, pd 3, 2025
