@@ -558,7 +558,7 @@ def grfParse(lstArgs):
             allNonDefRwds = False
 
             if "R" in finArg:
-                allNonDefRwds = True        
+                         
                 followingText = finArg[finArg.find("R")+1:]
                 if not followingText:
                     allNonDefRwds = True
@@ -570,10 +570,9 @@ def grfParse(lstArgs):
 
 
             if finArg[1] == "+":
-                
-                oldGraph = graphStruct.copy()
 
                 #do stuff
+
                 if "=" in finArg[2:]:
                     
                     v = []
@@ -581,7 +580,6 @@ def grfParse(lstArgs):
                     [v.append(x) for x in r if x not in v]
                     allEdges =v
                     for edge in allEdges:
-
                         first = edge[0]
                         second = edge[1]
                         if first == second:
@@ -616,9 +614,6 @@ def grfParse(lstArgs):
                     allEdges += v
 
                 for e in allEdges:
-
-                    if e[1] in oldGraph[e[0]][0]:
-                        continue
                     if rwd !=-1:
                         edgeProps[tuple(e)] = {'rwd':rwd}
                     if allNonDefRwds:
@@ -635,17 +630,11 @@ def grfParse(lstArgs):
                     for edge in allEdges:
                         first = edge[0]
                         second = edge[1]
-                        if (first,second) in edgeProps:
-                            edgeProps.remove((first,second))
-                        if (first,second) in nonDefaultRwds:
-                            nonDefaultRwds.remove((first,second))
-                            
                         if first == second:
                             if first not in graphStruct[first][0]:
                                 #graphStruct[first][0].add(first)
                                 pass
                             else:
-                                
                                 graphStruct[first][0].remove(first)
                             continue
                   
@@ -671,7 +660,6 @@ def grfParse(lstArgs):
                             pass
                             # print(graphStruct[first],edge)
                         else:
-                            
                             graphStruct[first][0].remove(second)
                 
             if finArg[1] == "%": #same as +~
@@ -745,7 +733,7 @@ def grfParse(lstArgs):
     graphStruct['grfRwd'] = grfRwd
     graphStruct['edgeProps'] = edgeProps
     graphStruct['nonDefaultRwds'] = nonDefaultRwds
-    print(graphStruct)
+    
     return graphStruct
                 
 
