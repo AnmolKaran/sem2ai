@@ -636,7 +636,8 @@ def grfParse(lstArgs):
                         first = edge[0]
                         second = edge[1]
                         if (first,second) in edgeProps:
-                            edgeProps.remove((first,second))
+                            del edgeProps[(first,second)]
+                            #edgeProps.remove((first,second))
                         if (first,second) in nonDefaultRwds:
                             nonDefaultRwds.remove((first,second))
                             
@@ -689,8 +690,8 @@ def grfParse(lstArgs):
                 for e in allEdges:
                     if rwd !=-1 and tuple(e) in extantEdges:
                         edgeProps[tuple(e)] = {'rwd':rwd}
-                    if allNonDefRwds:
-                        nonDefaultRwds.add(tuple(e))   
+                        if allNonDefRwds:
+                            nonDefaultRwds.add(tuple(e))   
             if finArg[1] == "_":  #toggle
                 if "=" in finArg[2:]:
                     
@@ -950,7 +951,7 @@ def shortestPathToRwd(graph,width,loc,prevLoc = None,steps = 0):
         
         nbrs = graph[loc][0] 
     else:
-        nbrs = graph[loc][0] - {prevLoc}
+        nbrs = graph[loc][0] #- {prevLoc}
         
     stepsToNbr = []
     if not nbrs:
