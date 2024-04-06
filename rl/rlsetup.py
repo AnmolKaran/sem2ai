@@ -17,8 +17,9 @@ def grfParse(lstArgs):
             numVertices = int(arg)
 
             wid = -1
-            if args[ind+1].isnumeric():
-                wid = int(args[i+1])
+        
+            if len(args) > 1 and args[ind+1].isnumeric():
+                wid = int(args[ind+1])
             else:
                 ht= 1
                 for i in range(1,int(math.sqrt(numVertices))+1):
