@@ -216,7 +216,7 @@ def processDirs(lst):
         symbol = "+"
     return {'symbol': symbol,"jumps":allJumps}
 
-def shortestPathToRwd(graph,width,loc,prevLoc = None,steps = 0):
+def shortestPathToRwd(graph,width,loc, gType, prevLoc = None,steps = 0):
     global allDists
     if steps > len(graph)-2:
         return -1,None
@@ -244,7 +244,7 @@ def shortestPathToRwd(graph,width,loc,prevLoc = None,steps = 0):
         if (nbr, loc,steps+1)  not in allDists:
             # print(shortestPathToRwd(graph,width,nbr,loc,steps+1))
             # print("hi")
-            path,rwdLoc = shortestPathToRwd(graph,width,nbr,loc,steps+1)
+            path,rwdLoc = shortestPathToRwd(graph,width,nbr,gType,loc,steps+1)
             allDists[(nbr,loc,steps+1)] = (path,rwdLoc)
         else:
             path = allDists[(nbr,loc,steps+1)][0]
@@ -255,25 +255,40 @@ def shortestPathToRwd(graph,width,loc,prevLoc = None,steps = 0):
             stepsToNbrToRwdloc.append((path,nbr,rwdLoc))
     
 
-    if loc == 0:
-        print(stepsToNbrToRwdloc)
+    
     if not stepsToNbrToRwdloc:   #not a possible location
         return -1,None
     elif prevLoc == None:   #the original index that was called
         
-        teststepsToNbrToRwdloc = stepsToNbrToRwdloc.copy()
-        greatestRwd = 0
-        for i, value in enumerate(teststepsToNbrToRwdloc):
-            if graph[value[2]][2]>greatestRwd:
-                greatestRwd = graph[value[2]][2]
-        for i, value in enumerate(teststepsToNbrToRwdloc):
-            if graph[value[2]][2]< greatestRwd:
-                stepsToNbrToRwdloc.remove(value)
 
-        stepsToNbrToRwdloc = sorted(stepsToNbrToRwdloc, key=lambda x: x[0], reverse=False)
+        if gType == "G0":
+            teststepsToNbrToRwdloc = stepsToNbrToRwdloc.copy()
+            greatestRwd = 0
+            for i, value in enumerate(teststepsToNbrToRwdloc):
+                if graph[value[2]][2]>greatestRwd:
+                    greatestRwd = graph[value[2]][2]
+            for i, value in enumerate(teststepsToNbrToRwdloc):
+                if graph[value[2]][2]< greatestRwd:
+                    stepsToNbrToRwdloc.remove(value)
 
-        greatest_first_element = stepsToNbrToRwdloc[0][0]
-        stepsToNbrToRwdloc = [tup for tup in stepsToNbrToRwdloc if tup[0] == greatest_first_element]
+            stepsToNbrToRwdloc = sorted(stepsToNbrToRwdloc, key=lambda x: x[0], reverse=False)
+
+            greatest_first_element = stepsToNbrToRwdloc[0][0]
+            stepsToNbrToRwdloc = [tup for tup in stepsToNbrToRwdloc if tup[0] == greatest_first_element]
+        else:
+            teststepsToNbrToRwdloc = stepsToNbrToRwdloc.copy()
+            greatestRwd = 0
+            for i, value in enumerate(teststepsToNbrToRwdloc):
+                if graph[value[2]][2]/value[0]>greatestRwd:
+                    greatestRwd = graph[value[2]][2]/value[0]
+            for i, value in enumerate(teststepsToNbrToRwdloc):
+                if graph[value[2]][2]/value[0]< greatestRwd:
+                    stepsToNbrToRwdloc.remove(value)
+
+            stepsToNbrToRwdloc = sorted(stepsToNbrToRwdloc, key=lambda x: x[0], reverse=False)
+
+            greatest_first_element = stepsToNbrToRwdloc[0][0]
+            stepsToNbrToRwdloc = [tup for tup in stepsToNbrToRwdloc if tup[0] == greatest_first_element]
 
         allDirs = []
         for i, v in enumerate(stepsToNbrToRwdloc):
@@ -287,27 +302,44 @@ def shortestPathToRwd(graph,width,loc,prevLoc = None,steps = 0):
         finThing = processDirs(allDirs)
         return finThing, loc
     else:   #return the minimum steps from the current location'
-       
-        teststepsToNbrToRwdloc = stepsToNbrToRwdloc.copy()
-        greatestRwd = 0
-        for i, value in enumerate(teststepsToNbrToRwdloc):
-            if graph[value[2]][2]>greatestRwd:
-                greatestRwd = graph[value[2]][2]
-        for i, value in enumerate(teststepsToNbrToRwdloc):
-            if graph[value[2]][2]< greatestRwd:
-                stepsToNbrToRwdloc.remove(value)
+        
+        if gType == "G0":
+            teststepsToNbrToRwdloc = stepsToNbrToRwdloc.copy()
+            greatestRwd = 0
+            for i, value in enumerate(teststepsToNbrToRwdloc):
+                if graph[value[2]][2]>greatestRwd:
+                    greatestRwd = graph[value[2]][2]
+            for i, value in enumerate(teststepsToNbrToRwdloc):
+                if graph[value[2]][2]< greatestRwd:
+                    stepsToNbrToRwdloc.remove(value)
 
-        stepsToNbrToRwdloc = sorted(stepsToNbrToRwdloc, key=lambda x: x[0], reverse=False)
 
 
-        stepsToNbrToRwdloc = sorted(stepsToNbrToRwdloc, key=lambda x: x[0], reverse=False)
-        greatest_first_element = stepsToNbrToRwdloc[0][0]
-        stepsToNbrToRwdloc = [tup for tup in stepsToNbrToRwdloc if tup[0] == greatest_first_element]
-        return stepsToNbrToRwdloc[0][0],stepsToNbrToRwdloc[0][2]
+            stepsToNbrToRwdloc = sorted(stepsToNbrToRwdloc, key=lambda x: x[0], reverse=False)
+            
+            greatest_first_element = stepsToNbrToRwdloc[0][0]
+            stepsToNbrToRwdloc = [tup for tup in stepsToNbrToRwdloc if tup[0] == greatest_first_element]
+            return stepsToNbrToRwdloc[0][0], stepsToNbrToRwdloc[0][2]
+        else: 
+            teststepsToNbrToRwdloc = stepsToNbrToRwdloc.copy()
+            greatestRwd = 0
+            for i, value in enumerate(teststepsToNbrToRwdloc):
+                if graph[value[2]][2]/value[0]>greatestRwd:
+                    greatestRwd = graph[value[2]][2]/value[0]
+            for i, value in enumerate(teststepsToNbrToRwdloc):
+                if graph[value[2]][2]/value[0]< greatestRwd:
+                    stepsToNbrToRwdloc.remove(value)
+
+            stepsToNbrToRwdloc = sorted(stepsToNbrToRwdloc, key=lambda x: x[0], reverse=False)
+            # if loc == 22:
+            #     print(stepsToNbrToRwdloc)
+            greatest_first_element = stepsToNbrToRwdloc[0][0]
+            stepsToNbrToRwdloc = [tup for tup in stepsToNbrToRwdloc if tup[0] == greatest_first_element]
+            return stepsToNbrToRwdloc[0][0], stepsToNbrToRwdloc[0][2]
             
 
 
-def showAllRwds(graph,width):
+def showAllRwds(graph,width,gType):
 
     finGraph = graph.copy()
     del finGraph["gType"]
@@ -317,7 +349,7 @@ def showAllRwds(graph,width):
     jumps = set()
 
     for vertex in finGraph:
-        dirs,nth = shortestPathToRwd(graph,width,vertex)
+        dirs,nth = shortestPathToRwd(graph,width,vertex,gType)
         if dirs == -1:
             finStr +="."
         elif dirs == "*":
@@ -364,7 +396,7 @@ def main():
     #         newNonDefs.remove(v)
     # graph['nonDefaultRwds'] = newNonDefs
     print(graph)
-    strEdg,jumpStr = showAllRwds(graph,wid)
+    strEdg,jumpStr = showAllRwds(graph,wid,gType)
     rest = ""
     # for i, ch in enumerate (strEdg):
     #     if i in oldNonDefs:
