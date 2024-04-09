@@ -17,6 +17,8 @@ def grfParse(lstArgs):
             numVertices = int(arg)
 
             wid = -1
+
+
         
             if len(args) > 1 and args[ind+1].isnumeric():
                 wid = int(args[ind+1])
@@ -255,7 +257,7 @@ def shortestPathToRwd(graph,width,loc, gType, prevLoc = None,steps = 0):
             stepsToNbrToRwdloc.append((path,nbr,rwdLoc))
     
 
-    
+
     if not stepsToNbrToRwdloc:   #not a possible location
         return -1,None
     elif prevLoc == None:   #the original index that was called
@@ -285,10 +287,17 @@ def shortestPathToRwd(graph,width,loc, gType, prevLoc = None,steps = 0):
                 if graph[value[2]][2]/value[0]< greatestRwd:
                     stepsToNbrToRwdloc.remove(value)
 
-            stepsToNbrToRwdloc = sorted(stepsToNbrToRwdloc, key=lambda x: x[0], reverse=False)
+            stepsToNbrToRwdloc = sorted(stepsToNbrToRwdloc, key=lambda x: graph[x[2]][2]/x[0], reverse=False)
+            rwdByDist = 0
+            
+            for x in stepsToNbrToRwdloc:
+                rwdByDist = graph[x[2]][2]/x[0]
+                break
+                    
 
-            greatest_first_element = stepsToNbrToRwdloc[0][0]
-            stepsToNbrToRwdloc = [tup for tup in stepsToNbrToRwdloc if tup[0] == greatest_first_element]
+            
+            #greatest_first_element = stepsToNbrToRwdloc[0][0]
+            stepsToNbrToRwdloc = [tup for tup in stepsToNbrToRwdloc if graph[tup[2]][2]/tup[0] == rwdByDist]
 
         allDirs = []
         for i, v in enumerate(stepsToNbrToRwdloc):
@@ -330,11 +339,18 @@ def shortestPathToRwd(graph,width,loc, gType, prevLoc = None,steps = 0):
                 if graph[value[2]][2]/value[0]< greatestRwd:
                     stepsToNbrToRwdloc.remove(value)
 
-            stepsToNbrToRwdloc = sorted(stepsToNbrToRwdloc, key=lambda x: x[0], reverse=False)
-            # if loc == 22:
-            #     print(stepsToNbrToRwdloc)
+            stepsToNbrToRwdloc = sorted(stepsToNbrToRwdloc, key=lambda x: graph[x[2]][2]/x[0], reverse=False)
+
             greatest_first_element = stepsToNbrToRwdloc[0][0]
-            stepsToNbrToRwdloc = [tup for tup in stepsToNbrToRwdloc if tup[0] == greatest_first_element]
+            for x in stepsToNbrToRwdloc:
+                rwdByDist = graph[x[2]][2]/x[0]
+                break
+                    
+
+            
+            #greatest_first_element = stepsToNbrToRwdloc[0][0]
+            stepsToNbrToRwdloc = [tup for tup in stepsToNbrToRwdloc if graph[tup[2]][2]/tup[0] == rwdByDist]
+            #stepsToNbrToRwdloc = [tup for tup in stepsToNbrToRwdloc if tup[0] == greatest_first_element]
             return stepsToNbrToRwdloc[0][0], stepsToNbrToRwdloc[0][2]
             
 
