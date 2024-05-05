@@ -11,7 +11,7 @@ def grfParse(lstArgs):
 
     for arg in lstArgs:
 
-
+       
         finArg = arg
         
         if arg[0].upper() == "G":
@@ -616,7 +616,7 @@ def grfParse(lstArgs):
                     allEdges += v
 
                 for e in allEdges:
-
+                    
                     if e[1] in oldGraph[e[0]][0]:
                         continue
                     if rwd !=-1:

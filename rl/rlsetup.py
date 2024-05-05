@@ -218,6 +218,9 @@ def processDirs(lst):
         symbol = "+"
     return {'symbol': symbol,"jumps":allJumps}
 
+
+
+
 def shortestPathToRwd(graph,width,loc, gType, prevLoc = None,steps = 0):
     global allDists
     if steps > len(graph)-2:

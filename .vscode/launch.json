@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args" :  [  "G12W6", "V7R", "E*1,9=10,2R18"]
+            "args" :  [  "5","I", "30"]
         }
     ]
 }

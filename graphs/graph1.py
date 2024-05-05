@@ -770,7 +770,7 @@ def grfParse(lstArgs):
                         edgeProps[tuple(e)] = {'rwd':rwd}
                     if allNonDefRwds:
                         nonDefaultRwds.add(tuple(e))   
-        print(graphStruct[12],finArg)
+        #print(graphStruct[12],finArg)
    
     graphStruct['grfRwd'] = grfRwd
     graphStruct['edgeProps'] = edgeProps
