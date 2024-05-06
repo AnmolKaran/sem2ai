@@ -178,7 +178,8 @@ def main():
     for i in range(len(allInputs)):
         allInputs[i].append(1) #putting bias of 1 
     weights = initialWeights
-    for epoch in range(1,200001):
+    bestError = 100000
+    for epoch in range(1,20001):
         totalError = 0
 
 
@@ -216,7 +217,18 @@ def main():
           
                     #print(weights)
             #print(negativeGradient)
-        if epoch%10000==0 :
+        if totalError> .099:
+            initialWeights = []
+            for i in range(len(nodeCts)-1):
+                ct = nodeCts[i]
+                numWts = ct * nodeCts[i+1]
+                wts = []
+                for n in range(numWts):
+                    wts.append(random.random())
+                initialWeights.append(wts)
+            weights = initialWeights
+        if totalError< bestError:
+            bestError = totalError
             print(f"err: ",totalError)
             finStr = ""
             #print(weights)
@@ -226,6 +238,17 @@ def main():
                     finStr += str(wt) + " "
                 print(finStr)
             print("\n")
+        
+        # if epoch%10000==0 :
+        #     print(f"err: ",totalError)
+        #     finStr = ""
+        #     #print(weights)
+        #     for layer in weights:
+        #         finStr = ""
+        #         for wt in layer:
+        #             finStr += str(wt) + " "
+        #         print(finStr)
+        #     print("\n")
 
 
 
