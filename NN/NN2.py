@@ -62,17 +62,18 @@ def feedForward(inps,weights,transferFunction): #returns all node values startin
 
 def transferDeriv(transferFunction,val,x = True): # if x is false then it is the y value
     if transferFunction == 3:
-        if x == True:
-            return performTransferFunc(val) * (1-performTransferFunc(val))
+        if x == False:
+            return performTransferFunc(3,val) * (1-performTransferFunc(3,val))
         else:
             return val * (1-val)
 
 
-def backProp(nodeVals,weights,transferFunction, realOutput):        
+def backProp(nodeVals,weights,transferFunction, realOutput): 
+     
     negativeGradient = []
     for i in range(len(weights)):
         newLayer = []
-        for u in range(len(weights[i])):
+        for _ in range(len(weights[i])):
             newLayer.append(0)
         negativeGradient.append(newLayer)
 
@@ -83,11 +84,14 @@ def backProp(nodeVals,weights,transferFunction, realOutput):
             newLayer.append(0)
         errorWRTy.append(newLayer)
 
+
     #last layer for negative gradient will always be 1 less than last layer for nodeVals
     errorWRTy[-1][0] = realOutput[0]-nodeVals[-1][0] #can change this for all nodes
     negativeGradient[-1][0]  = nodeVals[-2][0] *  realOutput[0]-nodeVals[-1][0]
     inc = 0
-    for layer in range(len(errorWRTy)-2,-1,-1):
+    for layer in range(len(errorWRTy)-2,0,-1):
+ 
+
         if inc == 0: # layer is the second to last layer
             for i in range(len(errorWRTy[layer])):
                 errorWRTy[layer][i] = errorWRTy[layer+1][i]*weights[layer][i] * transferDeriv(3,nodeVals[layer][i],True)
@@ -95,11 +99,27 @@ def backProp(nodeVals,weights,transferFunction, realOutput):
 
 
 
-        else:
-            for i in range(len(errorWRTy[layer])):
-                pass
-        inc +=1
 
+        else:
+            for i in range(len(nodeVals[layer])):
+                #wtsForDotProduct = [ind for ind ,v in enumerate(weights[layer]) if ind%len(errorWRTy[layer]) == i]
+
+                dotProdded = dotProduct(errorWRTy[layer+1],weights[layer][i::len(nodeVals[layer])]) #otherwise maybe use slicing if wtsForDotProduct doesnt work
+                #dotProdded = dotProduct(errorWRTy[layer+1],wtsForDotProduct)
+                errorWRTy[layer][i] = dotProdded * transferDeriv(3,nodeVals[layer][i],True)
+        inc +=1
+    
+    
+
+    for ind, layer in enumerate(errorWRTy):
+        if ind == 0:
+            continue
+        for i in range(len(negativeGradient[ind-1])):
+            
+            negativeGradient[ind-1][i] = layer[int(i/len(nodeVals[ind-1]))]* nodeVals[ind-1][i%len(nodeVals[ind-1])]
+    #print(negativeGradient)
+    return negativeGradient
+   
 
 
 
@@ -119,6 +139,7 @@ def main():
     for line in linesOfFile:
         splitted = line.split("=>")
         left = splitted[0]
+
         right  = splitted[1]
         inps = left.split(" ")
         newinps= []
@@ -137,7 +158,7 @@ def main():
         allInputs.append(inps)
         realOutputs.append(outs)
     
-
+    alpha = 0.1
 
     numInputs = len(allInputs[0])
     nodeCts = [numInputs+1,2,1,1]
@@ -149,25 +170,64 @@ def main():
         for n in range(numWts):
             wts.append(random.random())
         initialWeights.append(wts)
-
+    
     layerCtStr = "Layer counts: "
     for i in nodeCts:
         layerCtStr+=str(i) + " "
+
+
+    print(layerCtStr)
     for i in range(len(allInputs)):
-        allInputs[i].insert(0,1) #putting bias of 1 into the beginning (0th index)
+        allInputs[i].append(1) #putting bias of 1 
     weights = initialWeights
-    for epoch in range(1):
+    for epoch in range(1,30001):
+        totalError = 0
+
+
+
         for ind, currInps in enumerate(allInputs):
             
             #do forward prop to get network
+            #print(currInps)
             nodeVals = feedForward(currInps,weights,3)
+
+
+
+            #the following chunk calculates error
+            summDiffs = 0
+            for i in realOutputs[ind]:
+                for u in nodeVals[-1]:
+                    summDiffs+= (i-u) *(i-u)
+            summDiffs = summDiffs/2
+            totalError +=summDiffs
+
+
             # print(nodeVals)
             # print(weights)
-            backProp(nodeVals,weights,3,realOutputs[ind])
             #do backprop 
-        
+            negativeGradient = backProp(nodeVals,weights,3,realOutputs[ind])
 
 
+            for i,layer in enumerate(negativeGradient):  #updating weights
+                #print(layer)
+                l = []
+                for u,wt in enumerate(negativeGradient[i]):
+                    #pass
+                     l.append(weights[i][u]+ alpha * negativeGradient[i][u])
+                weights[i] = l
+          
+                    #print(weights)
+            #print(negativeGradient)
+        if epoch%1000==0 :
+            print(f"err: ",totalError)
+            finStr = ""
+            #print(weights)
+            for layer in weights:
+                finStr = ""
+                for wt in layer:
+                    finStr += str(wt) + " "
+                print(finStr)
+            print("\n")
 
 
 
