@@ -87,7 +87,7 @@ def backProp(nodeVals,weights,transferFunction, realOutput):
 
     #last layer for negative gradient will always be 1 less than last layer for nodeVals
     errorWRTy[-1][0] = realOutput[0]-nodeVals[-1][0] #can change this for all nodes
-    negativeGradient[-1][0]  = nodeVals[-2][0] *  realOutput[0]-nodeVals[-1][0]
+    negativeGradient[-1][0]  = nodeVals[-2][0] *  (realOutput[0]-nodeVals[-1][0])
     inc = 0
     for layer in range(len(errorWRTy)-2,0,-1):
  
@@ -95,8 +95,6 @@ def backProp(nodeVals,weights,transferFunction, realOutput):
         if inc == 0: # layer is the second to last layer
             for i in range(len(errorWRTy[layer])):
                 errorWRTy[layer][i] = errorWRTy[layer+1][i]*weights[layer][i] * transferDeriv(3,nodeVals[layer][i],True)
-
-
 
 
 
@@ -180,7 +178,7 @@ def main():
     for i in range(len(allInputs)):
         allInputs[i].append(1) #putting bias of 1 
     weights = initialWeights
-    for epoch in range(1,30001):
+    for epoch in range(1,200001):
         totalError = 0
 
 
@@ -218,7 +216,7 @@ def main():
           
                     #print(weights)
             #print(negativeGradient)
-        if epoch%1000==0 :
+        if epoch%10000==0 :
             print(f"err: ",totalError)
             finStr = ""
             #print(weights)
