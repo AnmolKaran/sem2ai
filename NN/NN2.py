@@ -165,7 +165,7 @@ def main():
 
     numInputs = len(allInputs[0])
     
-    nodeCts = [numInputs+1,2,len(realOutputs[0]),len(realOutputs[0])]
+    nodeCts = [numInputs+1,numInputs,len(realOutputs[0]),len(realOutputs[0])]
 
     
     initialWeights = []
