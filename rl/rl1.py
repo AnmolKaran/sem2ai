@@ -1032,6 +1032,8 @@ def maxNV(graph,vtx,valuations): #gives maximum edgeNbrVal
     maximum = 0
     for i in grfNbrs(graph,vtx):
         l=EdgeNbrVal(graph,vtx,i,valuations)
+        if l == "":
+            continue
         if l > maximum:
             maximum = l
     if maximum == 0:
@@ -1142,10 +1144,12 @@ def displayValuation(valuation, wid):
             valuation[i] = "00"
         else:
             valuation[i] = str(round(val,3))
-
+    if wid <= 0:
+        wid = 1000
 
     startIndeces = [q for q in range(0,len(valuation),wid) ]
     listed = []
+  
     for q in startIndeces:
        listPuzzle = list(valuation)
        theThing  = listPuzzle[q: q+wid]
@@ -1193,11 +1197,8 @@ def main():
     
     print("Optimal policy:")
     pP  =printPolicy(graph,policy)
-    if not pP:
-        fin = "." * grfSize
-        for i in graph['nonDefaultRwds']:
-            fin = fin[:i] + "*" + fin[i+1:]
-        print(fin)
+    if wid <= 0:
+        print(pP)
     
     else:
         display2d(pP,wid)
