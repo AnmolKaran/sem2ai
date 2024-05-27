@@ -947,31 +947,29 @@ def display2d(pzl,wid):
 
 
 def grfValuePolicy(graph,policy,gamma):
-    gamma = .99
-    policy  = [{12}, {2, 13}, {3, 14}, {4, 15}, {16}, set(), {18}, {8, 19, 6}, {9}, {10}, {47}, {10},
-            {13}, {14}, {15}, {16}, {17}, {17}, {17}, {18}, {8, 19, 21}, {9, 22}, {10}, {11, 22},
-           {25, 12}, {26, 13}, {27, 14}, {28, 15}, {16, 29}, {17}, {18, 29}, {19, 30}, {33, 20, 31}, {34, 21}, {22}, {34, 23},
-           {24, 37}, {25, 38}, {26, 39}, {40, 27}, {41, 28}, {29}, {41, 30}, {42, 31}, {32, 43, 45}, {33, 46}, {34}, {35, 46}]
+    # gamma = .99
+    # policy  = [{12}, {2, 13}, {3, 14}, {4, 15}, {16}, set(), {18}, {8, 19, 6}, {9}, {10}, {47}, {10},
+    #         {13}, {14}, {15}, {16}, {17}, {17}, {17}, {18}, {8, 19, 21}, {9, 22}, {10}, {11, 22},
+    #        {25, 12}, {26, 13}, {27, 14}, {28, 15}, {16, 29}, {17}, {18, 29}, {19, 30}, {33, 20, 31}, {34, 21}, {22}, {34, 23},
+    #        {24, 37}, {25, 38}, {26, 39}, {40, 27}, {41, 28}, {29}, {41, 30}, {42, 31}, {32, 43, 45}, {33, 46}, {34}, {35, 46}]
     valuation = ['' for i in range(len(graph)-3)]
     for i in graph['nonDefaultRwds']:
         if isinstance(i,int):
             valuation[i] = graph[i][2]
+
     while True:
         oldValuation = ["test"] + valuation 
         oldValuation = oldValuation[1:]
         for i in range(len(graph)-3):
             if i in graph['nonDefaultRwds']: continue
             valuedPolicyNbrs = policy[i]
-            newVPN = []
-            for d in valuedPolicyNbrs:
-                if not d == "":
-                    newVPN.append(d)
-            valuedPolicyNbrs = newVPN
-            if not valuedPolicyNbrs:continue
+            
+            if not valuedPolicyNbrs :continue
             edgeNbrVals = []
             for nbr in valuedPolicyNbrs:
                 if (i,nbr) in graph['edgeProps']: edgeNbrVals.append(graph['edgeProps'][(i,nbr)]["rwd"])
-                if valuation[nbr] != '':edgeNbrVals.append(valuation[nbr])
+                elif valuation[nbr] != '':edgeNbrVals.append(valuation[nbr])
+            
             if len(edgeNbrVals) >0:
                 
                 if gamma >.5:
@@ -980,12 +978,8 @@ def grfValuePolicy(graph,policy,gamma):
                 else:
                     newVal = sum(edgeNbrVals)/len(edgeNbrVals) - gamma
                     valuation[i] = newVal
+            
         newValuation = valuation
-        # print(oldValuation)
-        # print(newValuation)
-        # print()
-
-
         differences = []
         # print(oldValuation)
         # print(newValuation)
@@ -1003,7 +997,7 @@ def grfValuePolicy(graph,policy,gamma):
         if differences[-1] < .001:
             break
     
-    print(valuation)
+    #print(valuation)
     return valuation
 
 
