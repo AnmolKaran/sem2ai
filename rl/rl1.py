@@ -994,7 +994,8 @@ def grfValuePolicy(graph,policy,gamma):
         if broken == True:
             continue
         differences = sorted(differences)
-        if differences[-1] < .001:
+        
+        if  differences[-1] < .001:
             break
     
     #print(valuation)
@@ -1008,6 +1009,7 @@ def grfPolicyFromValuation(graph,valuations):
         #if valu == "" or vtx in graph['nonDefaultRwds'] :continue
         if  vtx in graph['nonDefaultRwds'] :continue
         policy[vtx] = argmax(graph,vtx,valuations)
+    
     return policy
 
     
@@ -1017,9 +1019,9 @@ def grfPolicyFromValuation(graph,valuations):
 
 
 def grfFindOptimalPolicy(graph):
-    initialPolicy = [grfNbrs(graph,i) for i in range(grfSize(graph))]
-    valuation = grfValuePolicy(graph,initialPolicy,.01)
-    policy = grfPolicyFromValuation(graph,valuation)
+    policy = [grfNbrs(graph,i) for i in range(grfSize(graph))]
+    # valuation = grfValuePolicy(graph,initialPolicy,.01)
+    # policy = grfPolicyFromValuation(graph,valuation)
     priorPolicy = ""
     #print(valuation)
     while priorPolicy != policy:
