@@ -947,6 +947,11 @@ def display2d(pzl,wid):
 
 
 def grfValuePolicy(graph,policy,gamma):
+    gamma = .99
+    policy  = [{12}, {2, 13}, {3, 14}, {4, 15}, {16}, set(), {18}, {8, 19, 6}, {9}, {10}, {47}, {10},
+            {13}, {14}, {15}, {16}, {17}, {17}, {17}, {18}, {8, 19, 21}, {9, 22}, {10}, {11, 22},
+           {25, 12}, {26, 13}, {27, 14}, {28, 15}, {16, 29}, {17}, {18, 29}, {19, 30}, {33, 20, 31}, {34, 21}, {22}, {34, 23},
+           {24, 37}, {25, 38}, {26, 39}, {40, 27}, {41, 28}, {29}, {41, 30}, {42, 31}, {32, 43, 45}, {33, 46}, {34}, {35, 46}]
     valuation = ['' for i in range(len(graph)-3)]
     for i in graph['nonDefaultRwds']:
         if isinstance(i,int):
@@ -957,6 +962,11 @@ def grfValuePolicy(graph,policy,gamma):
         for i in range(len(graph)-3):
             if i in graph['nonDefaultRwds']: continue
             valuedPolicyNbrs = policy[i]
+            newVPN = []
+            for d in valuedPolicyNbrs:
+                if not d == "":
+                    newVPN.append(d)
+            valuedPolicyNbrs = newVPN
             if not valuedPolicyNbrs:continue
             edgeNbrVals = []
             for nbr in valuedPolicyNbrs:
@@ -977,6 +987,8 @@ def grfValuePolicy(graph,policy,gamma):
 
 
         differences = []
+        # print(oldValuation)
+        # print(newValuation)
         broken = False
         for i in range(len(oldValuation)):
             if type(oldValuation[i]) != type(newValuation[i]):
@@ -990,7 +1002,8 @@ def grfValuePolicy(graph,policy,gamma):
         differences = sorted(differences)
         if differences[-1] < .001:
             break
-        
+    
+    print(valuation)
     return valuation
 
 
@@ -998,7 +1011,8 @@ def grfValuePolicy(graph,policy,gamma):
 def grfPolicyFromValuation(graph,valuations):
     policy = [[] for j in range(grfSize(graph))]
     for vtx ,valu in enumerate(valuations):
-        if valu == "" or vtx in graph['nonDefaultRwds'] :continue
+        #if valu == "" or vtx in graph['nonDefaultRwds'] :continue
+        if  vtx in graph['nonDefaultRwds'] :continue
         policy[vtx] = argmax(graph,vtx,valuations)
     return policy
 
@@ -1046,7 +1060,7 @@ def argmax(graph,vtx,valuations):
     return [n for n in grfNbrs(graph,vtx) if ""!= EdgeNbrVal(graph,vtx,n,valuations)== maxNV(graph,vtx,valuations)]   #replace edge nbr val with vlauations
 
 
-def printPolicy(graph,policy):
+def printPolicy(graph,policy,w):
     finStr = ""
     jumps = []
     finGraph = graph.copy()
@@ -1135,7 +1149,13 @@ def printPolicy(graph,policy):
                 jumpStr =  jumpStr + str(i[0]) + "~" + str(i[1]) + ";"
         jumpStr =jumpStr[:-1]
     fin = finStr + "\n" +jumpStr
-    return fin
+
+    if w <=0:
+        print(fin)
+    
+    else:
+        display2d(finStr,w)
+        print(jumpStr)
     
 
 def displayValuation(valuation, wid):
@@ -1197,15 +1217,15 @@ def main():
     policy= grfFindOptimalPolicy(graph)
     
     print("Optimal policy:")
-    pP  =printPolicy(graph,policy)
-    if wid <= 0:
-        print(pP)
+    printPolicy(graph,policy,wid)
+    # if wid <= 0:
+    #     print(pP)
     
-    else:
-        display2d(pP,wid)
+    # else:
+    #     display2d(pP,wid)
 
     valuation = grfValuePolicy(graph,policy,.01)
-
+    print()
     print("Valuation:")
     
     #print(valuation)
