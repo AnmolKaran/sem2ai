@@ -949,7 +949,8 @@ def display2d(pzl,wid):
 def grfValuePolicy(graph,policy,gamma):
     valuation = ['' for i in range(len(graph)-3)]
     for i in graph['nonDefaultRwds']:
-        valuation[i] = graph[i][2]
+        if isinstance(i,int):
+            valuation[i] = graph[i][2]
     while True:
         oldValuation = ["test"] + valuation 
         oldValuation = oldValuation[1:]
