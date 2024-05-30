@@ -385,9 +385,9 @@ def grfParse(lstArgs):
 
 
                 sections = splitted.split(":")
-
                 if len(sections) ==1:
                     for i, v in enumerate(sections):
+               
                         v = int(v)
                         if v <0:
                             v = v*-1

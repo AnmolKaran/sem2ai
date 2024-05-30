@@ -174,6 +174,7 @@ def grfParse(lstArgs):
 
                 st = setOfVertices
                 #print("\n\n")
+                
                 for v in st:
                     vertex = graphStruct[v]
                     mustRemove = set()
@@ -183,8 +184,9 @@ def grfParse(lstArgs):
                     
                     #print(graphStruct[v][0])
                     for otherVertex in graphStruct:
+                 
                         # if otherVertex in st:
-                            
+                        
                         #     continue
                         otherVertexOrigNeighbors = graphStruct[otherVertex][0].copy()
                  
@@ -204,6 +206,7 @@ def grfParse(lstArgs):
                             graphStruct[otherVertex][0].add(v)
                             
                             if otherVertex in graphStruct[v][0]:
+                                
                                 if (v,otherVertex) in edgeProps:
                                     del edgeProps[(v,otherVertex)]
                                 graphStruct[v][0].remove(otherVertex)
@@ -249,6 +252,7 @@ def grfParse(lstArgs):
 
                     for i in nbrs:
                         if i in graphStruct[v][0]:
+                            
                            # mustRemove.add(i)
                             graphStruct[v][0].remove(i)
                             if (v,i) in edgeProps:
@@ -582,11 +586,13 @@ def grfParse(lstArgs):
                     for edge in allEdges:
                         first = edge[0]
                         second = edge[1]
+                        
                         if first == second:
                             if first not in graphStruct[first][0]:
                                 graphStruct[first][0].add(first)
                             else:
                                 graphStruct[first][0].remove(first)
+                            
                             continue
                   
                         if second not in graphStruct[first][0]:
@@ -1007,25 +1013,23 @@ def grfPolicyFromValuation(graph,valuations):
     policy = [[] for j in range(grfSize(graph))]
     for vtx ,valu in enumerate(valuations):
         #if valu == "" or vtx in graph['nonDefaultRwds'] :continue
-        if  vtx in graph['nonDefaultRwds'] :continue
-        policy[vtx] = argmax(graph,vtx,valuations)
+        if  vtx in graph['nonDefaultRwds'] : 
+            policy[vtx] = []
+            continue
+        policy[vtx] = argmax(graph,vtx,valuations) if argmax(graph,vtx,valuations) else []
     
     return policy
 
     
 
 
-#take difference between all values and find max of them, if it is below .001 then you have reached optimal
-
-
 def grfFindOptimalPolicy(graph):
     policy = [grfNbrs(graph,i) for i in range(grfSize(graph))]
-    # valuation = grfValuePolicy(graph,initialPolicy,.01)
-    # policy = grfPolicyFromValuation(graph,valuation)
     priorPolicy = ""
-    #print(valuation)
+    
     while priorPolicy != policy:
-        valuation = grfValuePolicy(graph,(priorPolicy:=policy),.01)
+        valuation = grfValuePolicy(graph,policy,.01)
+        priorPolicy = policy
         policy = grfPolicyFromValuation(graph,valuation)
     return policy
 
