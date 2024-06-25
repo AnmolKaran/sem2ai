@@ -120,7 +120,6 @@ def backProp(nodeVals,weights,transferFunction, realOutput):
                 errorWRTy[layer][i] = dotProdded * transferDeriv(3,nodeVals[layer][i],True)
         inc +=1
     
-    
    
     
     for ii, layer in enumerate(errorWRTy):
@@ -148,9 +147,9 @@ def testNN(inps,outs,weights):
     for index, input in enumerate(inps):
     
         nodeVals = feedForward(input,weights,3)
-        print('output layer: ',nodeVals[-1])
-        print('nodeVals: ',nodeVals)
-        print()
+        # print('output layer: ',nodeVals[-1])
+        # print('nodeVals: ',nodeVals)
+        # print()
 
         maxVal = 0
         maxInd = 0
@@ -197,6 +196,12 @@ def main():
             # exit()
         # print(train_x)
         #print(train_y)
+            
+
+
+
+
+
     with open('NN/mnist_data/mnist_test.csv','r') as test_csv:
         reader = csv.reader(test_csv)
         randNums = random.sample(range(0,10000), 9999)
@@ -242,7 +247,7 @@ def main():
     weights = initialWeights
     bestError = 100000
 
-    
+    accuracies_every_5k = []
     for epoch in range(1,11):
 
         
@@ -278,17 +283,24 @@ def main():
                     #pass
                      l.append(weights[i][u]+ alpha * negativeGradient[i][u])
                 weights[i] = l
-        
-        tested = testNN(test_x,test_y,weights)  
-        print( "correct: ", tested)
-        with open('NN/mnist_weights.txt', 'w') as file:
-            for sublist in weights:
-                line = ' '.join(map(str, sublist))
-                file.write(line + '\n') 
-                file.write('\n\n')
-        print('elapsed time: ' + str(elapsed_time()))   
+            if ind %5000 == 0:
+                acc = testNN(test_x,test_y,weights)  
+                accuracies_every_5k.append(acc)
 
-if __name__ == '__main__': main()
+        
+        tested = accuracies_every_5k[-1] 
+        print( "correct: ", tested)
+        f = open("NN/mnist_weights.txt","w")
+        f.writelines('\n'.join([' '.join([str(w) for w in weight]) for weight in weights]))
+        f.close()
+        print('elapsed time: ' + str(elapsed_time()))   
+    with open('NN/accuracies_every_5k.txt', 'w') as file:
+        for value in accuracies_every_5k:
+            file.write(f"{value}\n")
+    
+
+if __name__ == '__main__': main()    
+
 
 # Anmol Karan, pd 3, 2025            
 
