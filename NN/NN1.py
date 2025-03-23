@@ -18,6 +18,7 @@ def parseArgs():
     return linesOfFile,transferFunction,allInputs
 
 
+
 def performTransferFunc(transferFunction,val):
     if transferFunction == 1:
         return val
