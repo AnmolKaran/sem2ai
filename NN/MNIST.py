@@ -173,7 +173,7 @@ def main():
     test_x = []
     test_y = []
 
-    with open('NN/mnist_data/mnist_train.csv','r') as train_csv:
+    with open('/Users/anmolkaran/Documents/mnist_train.csv','r') as train_csv:
         reader = csv.reader(train_csv)
         randNums = random.sample(range(0,60000), 60000)
         for ind, row in enumerate(reader):
